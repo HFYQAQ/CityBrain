@@ -21,10 +21,10 @@ public class DBConstants {
     //          mysql
     // ======================
     // xjoin隐式查询
-    public static final String dws_tfc_state_signinterfridseq_nd_index_m = "dws_tfc_state_signinterfridseq_nd_index_m";
-    public static final String dwd_tfc_ctl_signal_phasedir  = "dwd_tfc_ctl_signal_phasedir";
     public static final String dwd_tfc_bas_rdnet_rid_info = "dwd_tfc_bas_rdnet_rid_info";
     public static final String dwd_tfc_rltn_wide_inter_lane  = "dwd_tfc_rltn_wide_inter_lane";
+    public static final String dws_tfc_state_signinterfridseq_nd_index_m = "dws_tfc_state_signinterfridseq_nd_index_m";
+    public static final String dwd_tfc_ctl_signal_phasedir  = "dwd_tfc_ctl_signal_phasedir";
     // 显式查询
     public static final String dwd_tfc_ctl_intersignal_oper_rt  = "dwd_tfc_ctl_intersignal_oper_rt";
     public static final String dws_tfc_trl_interfridlane_tp_smtmultiflow_rt  = "dws_tfc_trl_interfridlane_tp_smtmultiflow_rt";
@@ -74,6 +74,26 @@ public class DBConstants {
                     dws_tfc_state_signinterfridseq_tpwkd_delaydur_m,
                     "10mi");
 
+
+    //-------------base table------------------------
+
+    public static final String sql_dwd_tfc_bas_rdnet_rid_info =
+            String.format("select rid, len " +
+                            "from %s",
+                    dwd_tfc_bas_rdnet_rid_info);
+    public static final String sql_dwd_tfc_rltn_wide_inter_lane =
+            String.format("select inter_id as interId, rid, turn_dir_no_list as turnDirNoList, lane_id as laneId " +
+                            "from %s",
+                    dwd_tfc_rltn_wide_inter_lane);
+    public static final String sql_dws_tfc_state_signinterfridseq_nd_index_m =
+            String.format("select inter_id as interId, f_rid as fRid, turn_dir_no as turnDirNo, f_ridseq as fRidseq, benchmark_nostop_travel_time_3m as benchmarkNostopTravelTime " +
+                            "from %s",
+                    dws_tfc_state_signinterfridseq_nd_index_m);
+    public static final String sql_dwd_tfc_ctl_signal_phasedir =
+            String.format("select inter_id as interId, f_rid as fRid, turn_dir_no as turnDirNo, phase_plan_id as phasePlanId, phase_name as phaseName " +
+                            "from %s",
+                    dwd_tfc_ctl_signal_phasedir);
+
     //-------------没用到------------------------
 
     public static final String OPER_RT_SOURCE =
@@ -98,9 +118,4 @@ public class DBConstants {
             String.format("select rid, benchmark_travel_time_3m as benchmarkTravelTime, benchmark_nostop_travel_time_3m as benchmarkNostopTravelTime " +
                             "from %s;"
                     , dws_tfc_state_rid_nd_index_m);
-    // 指标2
-    public static final String sql_dws_tfc_state_signinterfridseq_nd_index_m =
-            String.format("select inter_id as interId, f_rid as fRid, turn_dir_no as turnDirNo, f_ridseq as fRidseq, benchmark_nostop_travel_time_3m as benchmarkNostopTravelTime " +
-                            "from %s",
-                    dws_tfc_state_signinterfridseq_nd_index_m);
 }

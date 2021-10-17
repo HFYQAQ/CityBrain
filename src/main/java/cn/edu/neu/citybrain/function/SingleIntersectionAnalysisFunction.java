@@ -25,24 +25,22 @@ import static cn.edu.neu.citybrain.db.DBConstants.*;
 public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Row, fRidSeqTurnDirIndexDTO, Tuple, TimeWindow> {
     private ExecutorService executorService;
 
-    Map<String, List<SigninterfridseqIndex>> seqMap = new HashMap<>(); // 存放<rid, turnDirNo> -> ridseq映射的静态数据
-    Map<String, RidInfo> ridIndexM = new HashMap<>(); // 存放 rid -> benchmarkNostopSpeed/映射的静态数据
-    Map<String, SigninterfridseqIndex> fridseqIndexM = new HashMap<>();
+    // base table
+    Map<String, RidInfo> ridInfoMap = new HashMap<>();
+    Map<String, InterLaneInfo> interLaneInfoMap = new HashMap<>();
+    Map<String, SigninterfridseqIndex> seqNdIndexMap = new HashMap<>();
+    Map<String, PhaseInfo> phaseInfoMap = new HashMap<>();
 
     @Override
     public void open(Configuration parameters) throws Exception {
         super.open(parameters);
 
         this.executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() + 1);
+        loadBaseData();
     }
 
     @Override
-    // [0]tag, [1]inter_id, [2]rid, [3]turn_dir_no, [4]step_index_1mi, [5]step_index_10mi, [6]day_of_week, [7]timestamp
-    // [8]travel_time, [9]speed, [10]reliability_code
-    // [11]len
-    // [12]lane_id
-    // [13]f_ridseq, [14]benchmark_nostop_travel_time_3m
-    // [15]phase_plan_id, [16]phase_name
+    // [0]tag, [1]rid, [2]travel_time, [3]speed, [4]reliability_code, [5]step_index_1mi, [6]step_index_10mi, [7]day_of_week, [8]timestamp
     public void process(Tuple tuple, Context context, Iterable<Row> iterable, Collector<fRidSeqTurnDirIndexDTO> collector) throws Exception {
         long beforeProcess = System.currentTimeMillis();
         int receiveCnt = 0;
@@ -59,6 +57,18 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
         Long timestamp = 0L;
         for (Row row : iterable) {
             receiveCnt++;
+
+            // position
+            String rid = (String) row.getField(1);
+            // metric
+            Double travelTime = (Double) row.getField(2);
+            Double speed = (Double) row.getField(3);
+            Double reliabilityCode = (Double) row.getField(4);
+            // time
+            stepIndex1mi = (Long) row.getField(5);
+            stepIndex10mi = (Long) row.getField(6);
+            dayOfWeek = (Long) row.getField(7);
+            timestamp = (Long) row.getField(8);
 
             // unit
             String interId = (String) row.getField(1);
@@ -163,33 +173,32 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
         if (this.executorService == null) {
             return;
         }
-        // 指标1，查询seq
+
         DBQuery dbQuery = new DBQuery(this.executorService);
         dbQuery.add(
-                dws_tfc_state_signinterfridseq_tpwkd_delaydur_m,
-                sql_dws_tfc_state_signinterfridseq_tpwkd_delaydur_m_indicator1,
-                SigninterfridseqIndex.class,
-                new ArrayList<String>() {
-                    {
-                        add("fRid");
-                        add("turnDirNo");
-                        add("fRidseq");
-                    }
-                }
-        );
-        // 指标2 --- 默认值
-        dbQuery.add(
-                dws_tfc_state_rid_nd_index_m,
-                sql_dws_tfc_state_rid_nd_index_m,
+                dwd_tfc_bas_rdnet_rid_info,
+                sql_dwd_tfc_bas_rdnet_rid_info,
                 RidInfo.class,
                 new ArrayList<String>() {
                     {
                         add("rid");
-                        add("benchmarkTravelTime");
-                        add("benchmarkNostopTravelTime");
+                        add("len");
                     }
-                });
-        // 指标2
+                }
+        );
+        dbQuery.add(
+                dwd_tfc_rltn_wide_inter_lane,
+                sql_dwd_tfc_rltn_wide_inter_lane,
+                InterLaneInfo.class,
+                new ArrayList<String>() {
+                    {
+                        add("interId");
+                        add("rid");
+                        add("turnDirNoList");
+                        add("laneId");
+                    }
+                }
+        );
         dbQuery.add(
                 dws_tfc_state_signinterfridseq_nd_index_m,
                 sql_dws_tfc_state_signinterfridseq_nd_index_m,
@@ -203,37 +212,46 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
                         add("benchmarkNostopTravelTime");
                     }
                 });
+        dbQuery.add(
+                dwd_tfc_ctl_signal_phasedir,
+                sql_dwd_tfc_ctl_signal_phasedir,
+                PhaseInfo.class,
+                new ArrayList<String>() {
+                    {
+                        add("interId");
+                        add("fRid");
+                        add("turnDirNo");
+                        add("phasePlanId");
+                        add("phaseName");
+                    }
+                }
+        );
+
         dbQuery.execute();
 
-        seqMap = dbQuery.<SigninterfridseqIndex>get(dws_tfc_state_signinterfridseq_tpwkd_delaydur_m)
-                .stream()
-                .collect(Collectors.groupingBy(SigninterfridseqIndex::getfRid));
-
-        // ridIndexM
-        dbQuery.<RidInfo>get(dws_tfc_state_rid_nd_index_m)
+        dbQuery.<RidInfo>get(dwd_tfc_bas_rdnet_rid_info)
                 .forEach(op -> {
-                    String key = op.getRid();
-                    ridIndexM.put(key, op);
+                    String rid = op.getRid();
+
+                    ridInfoMap.put(rid, op);
                 });
-//        dbQuery.<RidInfo>get(dwd_tfc_bas_rdnet_rid_info)
-//                .forEach(op -> {
-//                    List<RidInfo> seq = ridIndexM.get(op.getRid());
-//                    RidInfo indexM = seq != null ? seq.get(0) : null;
-//
-//                    Double speed = indexM != null ? indexM.getBenchmarkSpeed() : ConstantUtil.DEFAULT_RID_SPEED;
-//                    Double travelTime = indexM != null ? indexM.getBenchmarkTravelTime() : op.getLength() / ConstantUtil.DEFAULT_RID_SPEED;
-//                    Double nostopSpeed = indexM != null ? indexM.getBenchmarkNostopSpeed() : ConstantUtil.DEFAULT_RID_SPEED;
-//                    op.setBenchmarkSpeed(speed);
-//                    op.setBenchmarkTravelTime(travelTime);
-//                    op.setBenchmarkNostopSpeed(nostopSpeed);
-//
-//                    this.allRidInfo.put(op.getRid(), op);
-//                });
-        // fridseqIndexM
+        dbQuery.<InterLaneInfo>get(dwd_tfc_rltn_wide_inter_lane)
+                .forEach(op -> {
+                    String rid = op.getRid();
+
+                    interLaneInfoMap.put(rid, op);
+                });
         dbQuery.<SigninterfridseqIndex>get(dws_tfc_state_signinterfridseq_nd_index_m)
                 .forEach(op -> {
-                    String key = CityBrainUtil.concat(op.getfRid(), op.getTurnDirNo());
-                    fridseqIndexM.put(key, op);
+                    String keyInterFridTurn = CityBrainUtil.concat(op.getInterId(), op.getfRid(), op.getTurnDirNo());
+
+                    seqNdIndexMap.put(keyInterFridTurn, op);
+                });
+        dbQuery.<PhaseInfo>get(dwd_tfc_ctl_signal_phasedir)
+                .forEach(op -> {
+                    String keyInterFridTurn = CityBrainUtil.concat(op.getInterId(), op.getfRid(), op.getTurnDirNo());
+
+                    phaseInfoMap.put(keyInterFridTurn, op);
                 });
     }
 
