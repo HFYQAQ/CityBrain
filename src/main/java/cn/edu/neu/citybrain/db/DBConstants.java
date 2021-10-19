@@ -78,7 +78,7 @@ public class DBConstants {
     //-------------base table------------------------
 
     public static final String sql_dwd_tfc_bas_rdnet_rid_info =
-            String.format("select rid, len " +
+            String.format("select rid, len as length " +
                             "from %s",
                     dwd_tfc_bas_rdnet_rid_info);
     public static final String sql_dwd_tfc_rltn_wide_inter_lane =

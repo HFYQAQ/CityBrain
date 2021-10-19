@@ -55,85 +55,79 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
         Long stepIndex10mi = 0L;
         Long dayOfWeek = 0L;
         Long timestamp = 0L;
-        for (Row row : iterable) {
-            receiveCnt++;
-
-            // position
-            String rid = (String) row.getField(1);
-            // metric
-            Double travelTime = (Double) row.getField(2);
-            Double speed = (Double) row.getField(3);
-            Double reliabilityCode = (Double) row.getField(4);
-            // time
-            stepIndex1mi = (Long) row.getField(5);
-            stepIndex10mi = (Long) row.getField(6);
-            dayOfWeek = (Long) row.getField(7);
-            timestamp = (Long) row.getField(8);
-
-            // unit
-            String interId = (String) row.getField(1);
-            String fRid = (String) row.getField(2);
-            Long turnDirNo = (Long) row.getField(3);
-            stepIndex1mi = (Long) row.getField(4);
-            stepIndex10mi = (Long) row.getField(5);
-            dayOfWeek = (Long) row.getField(6);
-            timestamp = (Long) row.getField(7);
-
-            // dws_tfc_state_rid_tp_lastspeed_rt
-            Double travelTime = (Double) row.getField(8);
-            Double speed = (Double) row.getField(9);
-            Double reliabilityCode = (Double) row.getField(10);
-
-            // dwd_tfc_bas_rdnet_rid_info
-            Double len = (Double) row.getField(11);
-
-            // dwd_tfc_rltn_wide_inter_lane
-            String laneId = (String) row.getField(12);
-
-            // dws_tfc_state_signinterfridseq_nd_index_m
-            String fRidSeq = (String) row.getField(13);
-            String benchmarkNostopTravelTime3mStr = (String) row.getField(14);
-            Double benchmarkNostopTravelTime3m = (benchmarkNostopTravelTime3mStr == null || benchmarkNostopTravelTime3mStr.length() == 0) ? 0.0 : Double.parseDouble(benchmarkNostopTravelTime3mStr);
-
-            // dwd_tfc_ctl_signal_phasedir
-            String phasePlanID = (String) row.getField(15);
-            String phaseName = (String) row.getField(16);
-
-            //----------------------
-            // 每个窗口更新一次的数据
-            //----------------------
-
-            String keyInterFridTurndir = CityBrainUtil.concat(interId, fRid, turnDirNo);
-
-            // turnGranularityInfoMap
-            RidGranularityInfo ridGranularityInfo;
-            if (!turnGranularityInfoMap.containsKey(fRid)) {
-                turnGranularityInfoMap.put(fRid, new ArrayList<>());
-                ridGranularityInfo = new RidGranularityInfo(travelTime, speed, reliabilityCode, len);
-            } else {
-                ridGranularityInfo = turnGranularityInfoMap.get(fRid).get(0).getRidGranularityInfo();
+        for (Row originRow : iterable) {
+            Row[] rows = hashJoin(originRow, ridInfoMap, interLaneInfoMap, seqNdIndexMap, phaseInfoMap);
+            if (rows == null) {
+                continue;
             }
-            if (!state.contains(keyInterFridTurndir)) {
-                turnGranularityInfoMap.get(fRid).add(
-                        new TurnGranularityInfo(
-                                ridGranularityInfo,
-                                interId, fRid, turnDirNo,
-                                laneId,
-                                fRidSeq, benchmarkNostopTravelTime3m,
-                                phasePlanID, phaseName));
-                state.add(keyInterFridTurndir);
+            for (Row row : rows) {
+                receiveCnt++;
+
+                // unit
+                String interId = (String) row.getField(1);
+                String fRid = (String) row.getField(2);
+                Long turnDirNo = (Long) row.getField(3);
+                stepIndex1mi = (Long) row.getField(4);
+                stepIndex10mi = (Long) row.getField(5);
+                dayOfWeek = (Long) row.getField(6);
+                timestamp = (Long) row.getField(7);
+
+                // dws_tfc_state_rid_tp_lastspeed_rt
+                Double travelTime = (Double) row.getField(8);
+                Double speed = (Double) row.getField(9);
+                Double reliabilityCode = (Double) row.getField(10);
+
+                // dwd_tfc_bas_rdnet_rid_info
+                Double len = (Double) row.getField(11);
+
+                // dwd_tfc_rltn_wide_inter_lane
+                String laneId = (String) row.getField(12);
+
+                // dws_tfc_state_signinterfridseq_nd_index_m
+                String fRidSeq = (String) row.getField(13);
+                String benchmarkNostopTravelTime3mStr = (String) row.getField(14);
+                Double benchmarkNostopTravelTime3m = (benchmarkNostopTravelTime3mStr == null || benchmarkNostopTravelTime3mStr.length() == 0) ? 0.0 : Double.parseDouble(benchmarkNostopTravelTime3mStr);
+
+                // dwd_tfc_ctl_signal_phasedir
+                String phasePlanID = (String) row.getField(15);
+                String phaseName = (String) row.getField(16);
+
+                //----------------------
+                // 每个窗口更新一次的数据
+                //----------------------
+
+                String keyInterFridTurndir = CityBrainUtil.concat(interId, fRid, turnDirNo);
+
+                // turnGranularityInfoMap
+                RidGranularityInfo ridGranularityInfo;
+                if (!turnGranularityInfoMap.containsKey(fRid)) {
+                    turnGranularityInfoMap.put(fRid, new ArrayList<>());
+                    ridGranularityInfo = new RidGranularityInfo(travelTime, speed, reliabilityCode, len);
+                } else {
+                    ridGranularityInfo = turnGranularityInfoMap.get(fRid).get(0).getRidGranularityInfo();
+                }
+                if (!state.contains(keyInterFridTurndir)) {
+                    turnGranularityInfoMap.get(fRid).add(
+                            new TurnGranularityInfo(
+                                    ridGranularityInfo,
+                                    interId, fRid, turnDirNo,
+                                    laneId,
+                                    fRidSeq, benchmarkNostopTravelTime3m,
+                                    phasePlanID, phaseName));
+                    state.add(keyInterFridTurndir);
+                }
+
+                // interAndDirMapPhaseNo
+                PhaseInfo phaseInfo = new PhaseInfo(interId, phasePlanID, phaseName);
+                phaseInfo.setfRid(fRid);
+                phaseInfo.setTurnDirNo(turnDirNo.toString());
+                interAndDirMapPhaseNo.putIfAbsent(keyInterFridTurndir, new HashSet<>());
+                interAndDirMapPhaseNo.get(keyInterFridTurndir).add(phaseInfo);
+
+                // interLaneInfoList
+                interLaneMap.putIfAbsent(keyInterFridTurndir, new TreeSet<>());
+                interLaneMap.get(keyInterFridTurndir).add(laneId);
             }
-
-            // interAndDirMapPhaseNo
-            PhaseInfo phaseInfo = new PhaseInfo(interId, phasePlanID, phaseName);
-            phaseInfo.setfRid(fRid);
-            phaseInfo.setTurnDirNo(turnDirNo.toString());
-            interAndDirMapPhaseNo.putIfAbsent(keyInterFridTurndir, new HashSet<>());
-            interAndDirMapPhaseNo.get(keyInterFridTurndir).add(phaseInfo);
-
-            // interLaneInfoList
-            interLaneMap.putIfAbsent(keyInterFridTurndir, new TreeSet<>());
-            interLaneMap.get(keyInterFridTurndir).add(laneId);
         }
         for (List<TurnGranularityInfo> turnGranularityInfos : turnGranularityInfoMap.values()) {
             if (turnGranularityInfos != null) {
@@ -167,6 +161,77 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
 
         long afterProcess = System.currentTimeMillis();
         System.out.println("spendtime=" + (afterProcess - beforeProcess) + "ms | " + "receiveCnt=" + receiveCnt + " | " + "rids=" + turnGranularityInfoMap.size() + " | " + "turns=" + results.size() + " | " + "notnull=" + cnt + " | " + "watermark=" + context.currentWatermark() + " | " + context.window());
+    }
+
+    private Row[] hashJoin(Row row,
+                         Map<String, RidInfo> ridInfoMap, // left join
+                         Map<String, InterLaneInfo> interLaneInfoMap, // inner join
+                         Map<String, SigninterfridseqIndex> seqNdIndexMap, // left join
+                         Map<String, PhaseInfo> phaseInfoMap) { // left join
+        // position
+        String rid = (String) row.getField(1);
+        // metric
+        Double travelTime = (Double) row.getField(2);
+        Double speed = (Double) row.getField(3);
+        Double reliabilityCode = (Double) row.getField(4);
+        // time
+        Long stepIndex1mi = (Long) row.getField(5);
+        Long stepIndex10mi = (Long) row.getField(6);
+        Long dayOfWeek = (Long) row.getField(7);
+        Long timestamp = (Long) row.getField(8);
+
+        RidInfo ridInfo = ridInfoMap.get(rid); // ridInfo
+        InterLaneInfo interLaneInfo = interLaneInfoMap.get(rid); // interLaneInfo
+        if (interLaneInfo == null) {
+            return null;
+        }
+
+        String interId = interLaneInfo.getInterId();
+        String turnDirNoList = interLaneInfo.getTurnDirNoList();
+        String[] turnDirNoSplits = turnDirNoList.split(",");
+        Row[] rows = new Row[turnDirNoSplits.length];
+        for (int i = 0; i < rows.length; i++) {
+            rows[i] = new Row(17);
+
+            rows[i].setField(0, -1); // 适配tag
+            rows[i].setField(1, interId);
+            rows[i].setField(2, rid);
+            Long turnDirNo = Long.parseLong(turnDirNoSplits[i]);
+            rows[i].setField(3, turnDirNo);
+            rows[i].setField(4, stepIndex1mi);
+            rows[i].setField(5, stepIndex10mi);
+            rows[i].setField(6, dayOfWeek);
+            rows[i].setField(7, timestamp);
+            rows[i].setField(8, travelTime);
+            rows[i].setField(9, speed);
+            rows[i].setField(10, reliabilityCode);
+            Double length = ridInfo != null ? ridInfo.getLength() : 0d;
+            rows[i].setField(11, length);
+            rows[i].setField(12, interLaneInfo.getLaneId());
+
+            String keyInterRidTurn = CityBrainUtil.concat(interId, rid, turnDirNo);
+            SigninterfridseqIndex signinterfridseqIndex = seqNdIndexMap.get(keyInterRidTurn); // SigninterfridseqIndex
+            PhaseInfo phaseInfo = phaseInfoMap.get(keyInterRidTurn); // PhaseInfo
+
+            String fRidseq = "";
+            Double benchmarkNostopTravelTime = 0d;
+            if (signinterfridseqIndex != null) {
+                fRidseq = signinterfridseqIndex.getfRidseq();
+                benchmarkNostopTravelTime = signinterfridseqIndex.getBenchmarkNostopTravelTime();
+            }
+            rows[i].setField(13, fRidseq);
+            rows[i].setField(14, benchmarkNostopTravelTime);
+
+            String phasePlanId = "";
+            String phaseName = "";
+            if (phaseInfo != null) {
+                phasePlanId = phaseInfo.getPhasePlanId();
+                phaseName = phaseInfo.getPhaseName();
+            }
+            rows[i].setField(15, phasePlanId);
+            rows[i].setField(16, phaseName);
+        }
+        return rows;
     }
 
     private void loadBaseData() {
