@@ -23,7 +23,6 @@ import org.apache.flink.mix.api.xjoin2.core.enums.XjoinType;
 import org.apache.flink.types.Row;
 
 import static cn.edu.neu.citybrain.db.DBConstants.*;
-import static org.apache.flink.core.fs.FileSystem.WriteMode.OVERWRITE;
 
 public class CityBrainEntry {
     public static void main(String[] args) throws Exception {
