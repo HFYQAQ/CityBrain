@@ -142,6 +142,29 @@ public class CityBrainEntry {
                 .addfieldInfo("phase_plan_id", "string")
                 .addfieldInfo("phase_name", "string")
                 .finish();
+        // dws_tfc_state_rid_tpwkd_index_m
+        RdbSideTableInfo tpwkdIndex = RdbSideTableInfoBuilders.buildMysqlTableInfo()
+                .setUrl(JDBC_URL)
+                .setUserName(JDBC_USER)
+                .setPassword(JDBC_PWD)
+                .setTableName(dws_tfc_state_rid_tpwkd_index_m)
+                .addfieldInfo("rid", "string")
+                .addfieldInfo("avg_travel_time_3m", "string")
+                .addfieldInfo("day_of_week", "string")
+                .addfieldInfo("step_index", "string")
+                .finish();
+        // dws_tfc_state_signinterfridseq_tpwkd_delaydur_m
+        RdbSideTableInfo tpwkdDelaydur = RdbSideTableInfoBuilders.buildMysqlTableInfo()
+                .setUrl(JDBC_URL)
+                .setUserName(JDBC_USER)
+                .setPassword(JDBC_PWD)
+                .setTableName(dws_tfc_state_signinterfridseq_tpwkd_delaydur_m)
+                .addfieldInfo("f_rid", "string")
+                .addfieldInfo("turn_dir_no", "string")
+                .addfieldInfo("avg_trace_travel_time_3m", "string")
+                .addfieldInfo("day_of_week", "string")
+                .addfieldInfo("step_index", "string")
+                .finish();
 
         // xjoin
         // ridInfo
@@ -210,9 +233,37 @@ public class CityBrainEntry {
                 .setCacheTimeout(ConstantUtil.CACHE_TIMEOUT)
                 .apply();
 //                .slotSharingGroup("xjoin");
+        // dws_tfc_state_rid_tpwkd_index_m
+        DataMixStream<Row> sourceExpRidInfoExpLaneExpNdIndexExpPhaseExpTpwkdIndex = sourceExpandRidInfoExpandInterLaneExpandNdIndexExpandPhasedir
+                .xjoinV4(tpwkdIndex)
+                .projectStreamTableKey(2, 5, 6)
+                .projectStreamTableField(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16)
+                .ProjectSideTableKey(0, 2, 3)
+                .projectsideTableField(0, 1, 2, 3)
+                .SyncXjoin()
+                .setXjoinType(XjoinType.LEFT)
+                .enableIncLog()
+                .enablePartition()
+                .setParallelism(parallelism)
+                .setCacheTimeout(ConstantUtil.CACHE_TIMEOUT)
+                .apply();
+        // dws_tfc_state_signinterfridseq_tpwkd_delaydur_m
+        DataMixStream<Row> sourceExpRidInfoExpLaneExpNdIndexExpPhaseExpTpwkdIndexExpDelaydur = sourceExpRidInfoExpLaneExpNdIndexExpPhaseExpTpwkdIndex
+                .xjoinV4(tpwkdDelaydur)
+                .projectStreamTableKey(2, 3, 5, 6)
+                .projectStreamTableField(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17)
+                .ProjectSideTableKey(0, 1, 3, 4)
+                .projectsideTableField(0, 1, 2, 3, 4)
+                .SyncXjoin()
+                .setXjoinType(XjoinType.LEFT)
+                .enableIncLog()
+                .enablePartition()
+                .setParallelism(parallelism)
+                .setCacheTimeout(ConstantUtil.CACHE_TIMEOUT)
+                .apply();
 
         // watermark
-        DataMixStream<Row> speedRTWithWatermark = sourceExpandRidInfoExpandInterLaneExpandNdIndexExpandPhasedir.assignTimestampsAndWatermarks(new BoundedOutOfOrdernessTimestampExtractor<Row>(Time.seconds(0)) {
+        DataMixStream<Row> speedRTWithWatermark = sourceExpRidInfoExpLaneExpNdIndexExpPhaseExpTpwkdIndexExpDelaydur.assignTimestampsAndWatermarks(new BoundedOutOfOrdernessTimestampExtractor<Row>(Time.seconds(0)) {
             @Override
             public long extractTimestamp(Row row) {
                 return (long) row.getField(7);

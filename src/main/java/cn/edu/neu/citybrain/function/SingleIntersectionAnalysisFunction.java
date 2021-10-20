@@ -50,6 +50,8 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
         Map<String, List<TurnGranularityInfo>> turnGranularityInfoMap = new HashMap<>();
         Map<String, Set<PhaseInfo>> interAndDirMapPhaseNo = new HashMap<>();
         Map<String, Set<String>> interLaneMap = new HashMap<>();
+        Map<String, Double> ridHistTraveltimeMap = new HashMap<>();
+        Map<String, Double> interFridSeqTurndirHistIndex = new HashMap<>();
 
         Set<String> state = new HashSet<>(); // 由于某些原因，需要去重
 
@@ -83,11 +85,19 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
             // dws_tfc_state_signinterfridseq_nd_index_m
             String fRidSeq = (String) row.getField(13);
             String benchmarkNostopTravelTime3mStr = (String) row.getField(14);
-            Double benchmarkNostopTravelTime3m = (benchmarkNostopTravelTime3mStr == null || benchmarkNostopTravelTime3mStr.length() == 0) ? 0.0 : Double.parseDouble(benchmarkNostopTravelTime3mStr);
+            Double benchmarkNostopTravelTime3m = (benchmarkNostopTravelTime3mStr == null || benchmarkNostopTravelTime3mStr.length() == 0) ? 0d : Double.parseDouble(benchmarkNostopTravelTime3mStr);
 
             // dwd_tfc_ctl_signal_phasedir
             String phasePlanID = (String) row.getField(15);
             String phaseName = (String) row.getField(16);
+
+            // dws_tfc_state_rid_tpwkd_index_m
+            String avgTravelTimeStr = (String) row.getField(17);
+            Double avgTravelTime = (avgTravelTimeStr == null || avgTravelTimeStr.length() == 0) ? 0d : Double.parseDouble(avgTravelTimeStr);
+
+            //dws_tfc_state_signinterfridseq_tpwkd_delaydur_m
+            String avgTraceTravelTimeStr = (String) row.getField(18);
+            Double avgTraceTravelTime = (avgTraceTravelTimeStr == null || avgTraceTravelTimeStr.length() == 0) ? 0d : Double.parseDouble(avgTraceTravelTimeStr);
 
             //----------------------
             // 每个窗口更新一次的数据
@@ -124,6 +134,13 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
             // interLaneInfoList
             interLaneMap.putIfAbsent(keyInterFridTurndir, new TreeSet<>());
             interLaneMap.get(keyInterFridTurndir).add(laneId);
+
+            // ridHistTraveltimeMap
+            ridHistTraveltimeMap.put(fRid, avgTravelTime);
+
+            // interFridSeqTurndirHistIndex
+            String keyFridTurn = CityBrainUtil.concat(fRid, turnDirNo);
+            interFridSeqTurndirHistIndex.put(keyFridTurn, avgTraceTravelTime);
         }
         for (List<TurnGranularityInfo> turnGranularityInfos : turnGranularityInfoMap.values()) {
             if (turnGranularityInfos != null) {
@@ -145,7 +162,9 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
         List<fRidSeqTurnDirIndexDTO> results = estimator.evaluate(stepIndex1mi, stepIndex10mi, dayOfWeek, timestamp,
                 turnGranularityInfoMap,
                 interAndDirMapPhaseNo,
-                interLaneMap);
+                interLaneMap,
+                ridHistTraveltimeMap,
+                interFridSeqTurndirHistIndex);
 
         int cnt = 0;
         for (fRidSeqTurnDirIndexDTO fRidSeqTurnDirIndexDTO : results) {

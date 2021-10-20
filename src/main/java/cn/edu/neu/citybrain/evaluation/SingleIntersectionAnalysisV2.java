@@ -81,10 +81,14 @@ public class SingleIntersectionAnalysisV2 {
     public List<fRidSeqTurnDirIndexDTO> evaluate(long stepIndex1mi, long stepIndex10mi, long dayOfWeek, long timestamp,
                                                  Map<String, List<TurnGranularityInfo>> turnGranularityInfoMap,
                                                  Map<String, Set<PhaseInfo>> interAndDirMapPhaseNo,
-                                                 Map<String, Set<String>> interLaneMap) {
+                                                 Map<String, Set<String>> interLaneMap,
+                                                 Map<String, Double> ridHistTraveltimeMap,
+                                                 Map<String, Double> interFridSeqTurndirHistIndex) {
         this.turnGranularityInfoMap = turnGranularityInfoMap;
         this.interAndDirMapPhaseNo = interAndDirMapPhaseNo;
         this.interLaneMap = interLaneMap;
+        this.ridHistTraveltimeMap = ridHistTraveltimeMap;
+        this.interFridSeqTurndirHistIndex = interFridSeqTurndirHistIndex;
 
         List<fRidSeqTurnDirIndexDTO> allResult = null;
 
@@ -103,32 +107,6 @@ public class SingleIntersectionAnalysisV2 {
         currTimeSlice = new TimeSlice(stepIndex1mi, "1mi"); // HFY: 不知道tp怎么传过来，姑且设置个1mi吧
 
         DBQuery dbQuery = new DBQuery(executorService);
-        // 指标1
-        dbQuery.add(
-                DBConstants.dws_tfc_state_rid_tpwkd_index_m,
-                DBConstants.sql_dws_tfc_state_rid_tpwkd_index_m,
-                RidIndex.class,
-                new ArrayList<String>() {
-                    {
-                        add("rid");
-                        add("travelTime");
-                    }
-                },
-                dayOfWeek,
-                stepIndex10mi);
-        dbQuery.add(
-                DBConstants.dws_tfc_state_signinterfridseq_tpwkd_delaydur_m,
-                DBConstants.sql_dws_tfc_state_signinterfridseq_tpwkd_delaydur_m,
-                InterFridSeqTurnDirIndex.class,
-                new ArrayList<String>() {
-                    {
-                        add("fRid");
-                        add("turnDirNo");
-                        add("avgTraceTravelTime");
-                    }
-                },
-                dayOfWeek,
-                stepIndex10mi);
         // 指标3
         dbQuery.add(
                 DBConstants.dwd_tfc_ctl_intersignal_oper_rt,
@@ -164,14 +142,6 @@ public class SingleIntersectionAnalysisV2 {
 
         dbQuery.execute();
 
-        // 指标1
-        dbQuery.<RidIndex>get(DBConstants.dws_tfc_state_rid_tpwkd_index_m)
-                .forEach(op -> ridHistTraveltimeMap.put(op.getRid(), op.getTravelTime()));
-        dbQuery.<InterFridSeqTurnDirIndex>get(DBConstants.dws_tfc_state_signinterfridseq_tpwkd_delaydur_m)
-                .forEach(op -> {
-                    String key = CityBrainUtil.concat(op.getfRid(), op.getTurnDirNo());
-                    interFridSeqTurndirHistIndex.put(key, op.getAvgTraceTravelTime());
-                });
         // 指标3
         interSignalOperPlansM = dbQuery.<InterSignalOperPlan>get(DBConstants.dwd_tfc_ctl_intersignal_oper_rt)
                 .stream()
