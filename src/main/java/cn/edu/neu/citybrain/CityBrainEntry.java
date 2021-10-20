@@ -3,27 +3,20 @@ package cn.edu.neu.citybrain;
 import cn.edu.neu.citybrain.connector.kafka.source.KafkaSpeedRTSourceFunction;
 import cn.edu.neu.citybrain.connector.kafka.util.Constants;
 import cn.edu.neu.citybrain.dto.fRidSeqTurnDirIndexDTO;
-import cn.edu.neu.citybrain.function.InterLaneScatterFunction;
 import cn.edu.neu.citybrain.function.SingleIntersectionAnalysisFunction;
 import cn.edu.neu.citybrain.function.sink.KafkaSinkFunction;
 import cn.edu.neu.citybrain.function.source.SpeedRTSourceFunction;
 import cn.edu.neu.citybrain.util.ConstantUtil;
 import org.apache.flink.api.java.utils.ParameterTool;
-import org.apache.flink.mix.api.TimeCharacteristic;
-import org.apache.flink.mix.api.datastream.DataMixStream;
-import org.apache.flink.mix.api.environment.MixStreamContextEnvironment;
-import org.apache.flink.mix.api.environment.MixStreamExecutionEnvironment;
-import org.apache.flink.mix.api.functions.source.SourceFunction;
-import org.apache.flink.mix.api.functions.timestamps.BoundedOutOfOrdernessTimestampExtractor;
-import org.apache.flink.mix.api.windowing.assigners.TumblingEventTimeWindows;
-import org.apache.flink.mix.api.windowing.time.Time;
-import org.apache.flink.mix.api.xjoin2.client.rdb.table.RdbSideTableInfo;
-import org.apache.flink.mix.api.xjoin2.client.rdb.table.RdbSideTableInfoBuilders;
-import org.apache.flink.mix.api.xjoin2.core.enums.XjoinType;
+import org.apache.flink.streaming.api.TimeCharacteristic;
+import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.environment.StreamContextEnvironment;
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.functions.source.SourceFunction;
+import org.apache.flink.streaming.api.functions.timestamps.BoundedOutOfOrdernessTimestampExtractor;
+import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows;
+import org.apache.flink.streaming.api.windowing.time.Time;
 import org.apache.flink.types.Row;
-
-import static cn.edu.neu.citybrain.db.DBConstants.*;
-import static org.apache.flink.core.fs.FileSystem.WriteMode.OVERWRITE;
 
 public class CityBrainEntry {
     public static void main(String[] args) throws Exception {
@@ -74,10 +67,10 @@ public class CityBrainEntry {
                 "--maxParallelism", maxParallelism);
 
         // environment
-        final MixStreamExecutionEnvironment env = MixStreamContextEnvironment.getExecutionEnvironment()
+        final StreamExecutionEnvironment env = StreamContextEnvironment.getExecutionEnvironment()
                 .setParallelism(parallelism)
                 .setMaxParallelism(maxParallelism);
-        env.setMixStreamTimeCharacteristic(TimeCharacteristic.EventTime);
+        env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
         env.getConfig().setAutoWatermarkInterval(1000);
 
         // source
@@ -93,20 +86,20 @@ public class CityBrainEntry {
                 sourceFunction = new KafkaSpeedRTSourceFunction(servers, sourceDelay, parallelism, maxParallelism);
                 break;
         }
-        DataMixStream<Row> speedRTSource = env
+        DataStream<Row> speedRTSource = env
                 .addSource(sourceFunction)
                 .name("speedRT")
                 .returns(KafkaSpeedRTSourceFunction.getRowTypeInfo());
 
         // watermark
-        DataMixStream<Row> speedRTWithWatermark = speedRTSource.assignTimestampsAndWatermarks(new BoundedOutOfOrdernessTimestampExtractor<Row>(Time.seconds(0)) {
+        DataStream<Row> speedRTWithWatermark = speedRTSource.assignTimestampsAndWatermarks(new BoundedOutOfOrdernessTimestampExtractor<Row>(Time.seconds(0)) {
             @Override
             public long extractTimestamp(Row row) {
                 return (long) row.getField(8);
             }
         });
         // window
-        DataMixStream<fRidSeqTurnDirIndexDTO> singleIntersectionAnalysisResult = speedRTWithWatermark
+        DataStream<fRidSeqTurnDirIndexDTO> singleIntersectionAnalysisResult = speedRTWithWatermark
                 .keyBy(0)
                 .window(TumblingEventTimeWindows.of(Time.minutes(1)))
                 .process(new SingleIntersectionAnalysisFunction());

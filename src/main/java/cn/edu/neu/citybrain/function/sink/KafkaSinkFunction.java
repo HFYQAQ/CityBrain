@@ -1,9 +1,8 @@
 package cn.edu.neu.citybrain.function.sink;
 
-import cn.edu.neu.citybrain.connector.kafka.util.Constants;
 import cn.edu.neu.citybrain.dto.fRidSeqTurnDirIndexDTO;
 import org.apache.flink.configuration.Configuration;
-import org.apache.flink.mix.api.functions.sink.RichSinkFunction;
+import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
