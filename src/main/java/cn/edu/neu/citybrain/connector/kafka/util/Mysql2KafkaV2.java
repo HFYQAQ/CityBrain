@@ -1,7 +1,6 @@
 package cn.edu.neu.citybrain.connector.kafka.util;
 
 import cn.edu.neu.citybrain.db.DBConnection;
-import cn.edu.neu.citybrain.db.DBConstants;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.types.Row;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -61,42 +60,6 @@ public class Mysql2KafkaV2 {
         }
     }
 
-    private static void loadDataFromOperRT(int from, int to) {
-//        Properties properties = new Properties();
-//        properties.put("bootstrap.servers", Constants.NEU_KAFKA_SERVER);
-//        properties.put("acks", "all");
-//        properties.put("retries", 0);
-//        properties.put("linger.ms", 1);
-//        properties.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-//        properties.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-//
-//        try (Producer<String, String> producer = new KafkaProducer<>(properties);
-//             Connection connection = DBConnection.getConnection();
-//             PreparedStatement preparedStatement = connection.prepareStatement(DBConstants.OPER_RT_SOURCE)) {
-//            System.out.printf("load from %s with step_index within [%d, %d].\n", DBConstants.dwd_tfc_ctl_intersignal_oper_rt, from, to);
-//            for (int stepIndex = from; stepIndex <= to; stepIndex++) {
-//                ResultSet resultSet = preparedStatement.executeQuery();
-//                int cnt = 0;
-//                while (resultSet.next()) {
-//                    Row row = new Row(7);
-//                    row.setField(0, resultSet.getString("inter_id"));
-//                    row.setField(1, resultSet.getDouble("phase_plan_id"));
-//                    row.setField(2, resultSet.getDouble("cycle_start_time"));
-//                    row.setField(3, resultSet.getDouble("phase_name"));
-//                    row.setField(3, resultSet.getDouble("split_time"));
-//                    row.setField(3, resultSet.getDouble("cycle_time"));
-//                    row.setField(3, resultSet.getDouble("green_time"));
-//                    producer.send(new ProducerRecord<>(Constants.TOPIC_DWD_TFC_CTL_INTERSIGNAL_OPER_RT, row.toString()));
-//                    cnt++;
-//                }
-//
-//                System.out.printf("importing step_index %d, contains %d records.\n", stepIndex, cnt);
-//            }
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-    }
-
     public static void main(String[] args) throws Exception {
         // parameters
         ParameterTool parameterTool = ParameterTool.fromArgs(args);
@@ -107,20 +70,14 @@ public class Mysql2KafkaV2 {
                             "\t%-20s%s\n" +
                             "\t%-20s%s\n" +
                             "\t%-20s%s\n",
-                    "--servers", "kafka servers to connect.",
-                    "--tableName", "table which to load, must be specified explicitly.",
+                    "--servers", "kafka servers to connect, default value is \"kafka-service\".",
+                    "--tableName", "table which to load, default value is \"table2\".",
                     "--from", "lower for step_index, default value is 0.",
                     "--to", "upper from step_index, default value is 1");
             return;
         }
-        if (!parameterTool.has("servers")) {
-            throw new Exception("kafka servers which to connect must be specified explicitly!");
-        }
-        if (!parameterTool.has("tableName")) {
-            throw new Exception("table which to load must be specified explicitly!");
-        }
-        String servers = parameterTool.get("servers");
-        String tableName = parameterTool.get("tableName");
+        String servers = parameterTool.get("servers", "kafka-service");
+        String tableName = parameterTool.get("tableName", "table2");
         int from = parameterTool.get("from") == null ? 0 : Integer.parseInt(parameterTool.get("from"));
         int to = parameterTool.get("to") == null ? 1 : Integer.parseInt(parameterTool.get("to"));
 
