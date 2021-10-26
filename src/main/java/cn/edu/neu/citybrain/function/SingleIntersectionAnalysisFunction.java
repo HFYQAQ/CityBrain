@@ -163,8 +163,8 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
                 turnGranularityInfoMap,
                 interAndDirMapPhaseNo,
                 interLaneMap,
-                cache1.get(stepIndex10mi),
-                cache2.get(stepIndex10mi));
+                cache1,
+                cache2);
 
         long afterProcess = System.currentTimeMillis();
 

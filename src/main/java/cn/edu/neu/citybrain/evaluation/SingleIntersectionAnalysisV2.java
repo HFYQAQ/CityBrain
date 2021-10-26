@@ -82,15 +82,17 @@ public class SingleIntersectionAnalysisV2 {
                                                  Map<String, List<TurnGranularityInfo>> turnGranularityInfoMap,
                                                  Map<String, Set<PhaseInfo>> interAndDirMapPhaseNo,
                                                  Map<String, Set<String>> interLaneMap,
-                                                 List<RidIndex> cache1,
-                                                 List<InterFridSeqTurnDirIndex> cache2) {
+                                                 Map<Long, List<RidIndex>> cache1,
+                                                 Map<Long, List<InterFridSeqTurnDirIndex>> cache2) {
         this.turnGranularityInfoMap = turnGranularityInfoMap;
         this.interAndDirMapPhaseNo = interAndDirMapPhaseNo;
         this.interLaneMap = interLaneMap;
-        cache1.forEach(op -> ridHistTraveltimeMap.put(op.getRid(), op.getTravelTime()));
-        cache2.forEach(op -> {
-            String key = CityBrainUtil.concat(op.getfRid(), op.getTurnDirNo());
-            interFridSeqTurndirHistIndex.put(key, op.getAvgTraceTravelTime());
+        cache1.get(stepIndex10mi)
+                .forEach(op -> ridHistTraveltimeMap.put(op.getRid(), op.getTravelTime()));
+        cache2.get(stepIndex10mi)
+                .forEach(op -> {
+                    String key = CityBrainUtil.concat(op.getfRid(), op.getTurnDirNo());
+                    interFridSeqTurndirHistIndex.put(key, op.getAvgTraceTravelTime());
         });
 
         List<fRidSeqTurnDirIndexDTO> allResult = null;
