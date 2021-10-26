@@ -58,19 +58,17 @@ public class DBConstants {
                     dws_tfc_trl_interfridlane_tp_smtmultiflow_rt,
                     "5mi");
     public static final String sql_dws_tfc_state_rid_tpwkd_index_m =
-            String.format("select rid, avg_travel_time_3m as travelTime " +
+            String.format("select rid, avg_travel_time_3m as travelTime, step_index as stepIndex " +
                             "from %s where " +
                             "tp='%s' and " +
-                            "day_of_week=? and " +
-                            "step_index=?;",
+                            "day_of_week=?;",
                     dws_tfc_state_rid_tpwkd_index_m,
                     "10mi");
     public static final String sql_dws_tfc_state_signinterfridseq_tpwkd_delaydur_m =
-            String.format("select inter_id as interId, f_rid as fRid, turn_dir_no as turnDirNo, avg_trace_travel_time_3m as avgTraceTravelTime " +
+            String.format("select inter_id as interId, f_rid as fRid, turn_dir_no as turnDirNo, avg_trace_travel_time_3m as avgTraceTravelTime, step_index as stepIndex " +
                             "from %s where " +
                             "tp='%s' and " +
-                            "day_of_week=? and " +
-                            "step_index=?;",
+                            "day_of_week=?;",
                     dws_tfc_state_signinterfridseq_tpwkd_delaydur_m,
                     "10mi");
 

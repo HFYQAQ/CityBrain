@@ -21,6 +21,8 @@ public class RidIndex {
      */
     private Double reliabilityCode;
 
+    private long stepIndex;
+
     public String getRid() {
         return rid;
     }
@@ -51,6 +53,14 @@ public class RidIndex {
 
     public void setReliabilityCode(Double reliabilityCode) {
         this.reliabilityCode = reliabilityCode;
+    }
+
+    public void setStepIndex(long stepIndex) {
+        this.stepIndex = stepIndex;
+    }
+
+    public long getStepIndex() {
+        return stepIndex;
     }
 }
 

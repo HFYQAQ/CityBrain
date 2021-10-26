@@ -1,6 +1,7 @@
 package cn.edu.neu.citybrain.function;
 
 import cn.edu.neu.citybrain.db.DBConnection;
+import cn.edu.neu.citybrain.db.DBConstants;
 import cn.edu.neu.citybrain.db.DBQuery;
 import cn.edu.neu.citybrain.db.JdbcSupport;
 import cn.edu.neu.citybrain.dto.*;
@@ -18,6 +19,7 @@ import org.apache.flink.util.Collector;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 import static cn.edu.neu.citybrain.db.DBConstants.*;
 
@@ -29,6 +31,10 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
     Map<String, InterLaneInfo> interLaneInfoMap = new HashMap<>();
     Map<String, SigninterfridseqIndex> seqNdIndexMap = new HashMap<>();
     Map<String, PhaseInfo> phaseInfoMap = new HashMap<>();
+    // cache
+    long curDayOfWeek = -1;
+    Map<Long, List<RidIndex>> cache1;
+    Map<Long, List<InterFridSeqTurnDirIndex>> cache2;
 
     @Override
     public void open(Configuration parameters) throws Exception {
@@ -147,11 +153,18 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
             }
         }
 
+        if (dayOfWeek != curDayOfWeek) {
+            curDayOfWeek = dayOfWeek;
+            updateCache();
+        }
+
         SingleIntersectionAnalysisV2 estimator = new SingleIntersectionAnalysisV2(this.executorService);
         List<fRidSeqTurnDirIndexDTO> results = estimator.evaluate(stepIndex1mi, stepIndex10mi, dayOfWeek, timestamp,
                 turnGranularityInfoMap,
                 interAndDirMapPhaseNo,
-                interLaneMap);
+                interLaneMap,
+                cache1.get(stepIndex10mi),
+                cache2.get(stepIndex10mi));
 
         long afterProcess = System.currentTimeMillis();
 
@@ -171,6 +184,48 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
         }
 
         System.out.println("spendtime=" + (afterProcess - beforeProcess) + "ms | " + "receiveCnt=" + receiveCnt + " | " + "rids=" + turnGranularityInfoMap.size() + " | " + "turns=" + results.size() + " | " + "notnull=" + cnt + " | " + "watermark=" + context.currentWatermark() + " | " + context.window());
+    }
+
+    private void updateCache() {
+        cache1 = null;
+        cache2 = null;
+
+        DBQuery dbQuery = new DBQuery(executorService);
+        // 指标1
+        dbQuery.add(
+                DBConstants.dws_tfc_state_rid_tpwkd_index_m,
+                DBConstants.sql_dws_tfc_state_rid_tpwkd_index_m,
+                RidIndex.class,
+                new ArrayList<String>() {
+                    {
+                        add("rid");
+                        add("travelTime");
+                        add("stepIndex");
+                    }
+                },
+                curDayOfWeek);
+        dbQuery.add(
+                DBConstants.dws_tfc_state_signinterfridseq_tpwkd_delaydur_m,
+                DBConstants.sql_dws_tfc_state_signinterfridseq_tpwkd_delaydur_m,
+                InterFridSeqTurnDirIndex.class,
+                new ArrayList<String>() {
+                    {
+                        add("fRid");
+                        add("turnDirNo");
+                        add("avgTraceTravelTime");
+                        add("stepIndex");
+                    }
+                },
+                curDayOfWeek);
+
+        dbQuery.execute();
+
+        cache1 = dbQuery.<RidIndex>get(DBConstants.dws_tfc_state_rid_tpwkd_index_m)
+                .stream()
+                .collect(Collectors.groupingBy(RidIndex::getStepIndex));
+        cache2 = dbQuery.<InterFridSeqTurnDirIndex>get(DBConstants.dws_tfc_state_signinterfridseq_tpwkd_delaydur_m)
+                .stream()
+                .collect(Collectors.groupingBy(InterFridSeqTurnDirIndex::getStepIndex));
     }
 
     private Row[] hashJoin(Row row,
