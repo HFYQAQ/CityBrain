@@ -70,7 +70,7 @@ public class Mysql2KafkaV2 {
                             "\t%-20s%s\n" +
                             "\t%-20s%s\n" +
                             "\t%-20s%s\n",
-                    "--servers", "kafka servers to connect, default value is \"kafka-service\".",
+                    "--servers", "kafka servers to connect, default value is \"kafka-service:9092\".",
                     "--tableName", "table which to load, default value is \"table2\".",
                     "--from", "lower for step_index, default value is 0.",
                     "--to", "upper from step_index, default value is 1");

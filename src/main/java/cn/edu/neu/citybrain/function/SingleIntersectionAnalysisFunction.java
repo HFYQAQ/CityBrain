@@ -43,6 +43,7 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
     public void process(Tuple tuple, Context context, Iterable<Row> iterable, Collector<fRidSeqTurnDirIndexDTO> collector) throws Exception {
         long beforeProcess = System.currentTimeMillis();
         int receiveCnt = 0;
+        long amount = 0;
 
         Map<String, List<TurnGranularityInfo>> turnGranularityInfoMap = new HashMap<>();
         Map<String, Set<PhaseInfo>> interAndDirMapPhaseNo = new HashMap<>();
@@ -55,6 +56,8 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
         Long dayOfWeek = 0L;
         Long timestamp = 0L;
         for (Row originRow : iterable) {
+            amount++;
+
             Row[] rows = hashJoin(originRow, ridInfoMap, interLaneInfoMap, seqNdIndexMap, phaseInfoMap);
             if (rows == null) {
                 continue;
@@ -150,6 +153,15 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
                 interAndDirMapPhaseNo,
                 interLaneMap);
 
+        long afterProcess = System.currentTimeMillis();
+
+        // metric
+        long duration = afterProcess - beforeProcess;
+        double throughoutput = amount * 1.0 / duration * 1000;
+        double delay = duration * 1.0 / amount;
+        System.out.println("throughoutput: " + throughoutput + "/s     " + "delay: " + delay + "ms");
+
+        // log
         int cnt = 0;
         for (fRidSeqTurnDirIndexDTO fRidSeqTurnDirIndexDTO : results) {
             if (fRidSeqTurnDirIndexDTO.getTravelTime() != 0.0d) {
@@ -158,7 +170,6 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
             collector.collect(fRidSeqTurnDirIndexDTO);
         }
 
-        long afterProcess = System.currentTimeMillis();
         System.out.println("spendtime=" + (afterProcess - beforeProcess) + "ms | " + "receiveCnt=" + receiveCnt + " | " + "rids=" + turnGranularityInfoMap.size() + " | " + "turns=" + results.size() + " | " + "notnull=" + cnt + " | " + "watermark=" + context.currentWatermark() + " | " + context.window());
     }
 
