@@ -5,7 +5,7 @@ import java.util.Objects;
 public class PhaseInfo {
     private String interId;
     private String fRid;
-    private String turnDirNo;
+    private Long turnDirNo;
     
     private String phasePlanId;
     private String phaseName;
@@ -26,11 +26,11 @@ public class PhaseInfo {
 		this.fRid = fRid;
 	}
 
-	public String getTurnDirNo() {
+	public Long getTurnDirNo() {
 		return turnDirNo;
 	}
 
-	public void setTurnDirNo(String turnDirNo) {
+	public void setTurnDirNo(Long turnDirNo) {
 		this.turnDirNo = turnDirNo;
 	}
 

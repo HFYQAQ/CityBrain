@@ -50,9 +50,9 @@ public class Mysql2KafkaV2 {
                 }
 
                 System.out.printf("completed! contains %d records.\n", cnt);
-                while (System.currentTimeMillis() - start < 60 * 1000) {
-                    Thread.sleep(3 * 1000);
-                }
+//                while (System.currentTimeMillis() - start < 60 * 1000) {
+//                    Thread.sleep(3 * 1000);
+//                }
             }
             System.out.println("no more records can read from mysql.");
         } catch (Exception e) {
@@ -76,7 +76,7 @@ public class Mysql2KafkaV2 {
                     "--to", "upper from step_index, default value is 1");
             return;
         }
-        String servers = parameterTool.get("servers", "kafka-service");
+        String servers = parameterTool.get("servers", "kafka-service:9092");
         String tableName = parameterTool.get("tableName", "table2");
         int from = parameterTool.get("from") == null ? 0 : Integer.parseInt(parameterTool.get("from"));
         int to = parameterTool.get("to") == null ? 1 : Integer.parseInt(parameterTool.get("to"));

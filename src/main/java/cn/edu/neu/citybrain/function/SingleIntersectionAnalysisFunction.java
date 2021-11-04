@@ -93,8 +93,7 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
 
                 // dws_tfc_state_signinterfridseq_nd_index_m
                 String fRidSeq = (String) row.getField(13);
-                String benchmarkNostopTravelTime3mStr = (String) row.getField(14);
-                Double benchmarkNostopTravelTime3m = (benchmarkNostopTravelTime3mStr == null || benchmarkNostopTravelTime3mStr.length() == 0) ? 0.0 : Double.parseDouble(benchmarkNostopTravelTime3mStr);
+                Double benchmarkNostopTravelTime3m = (Double) row.getField(14);
 
                 // dwd_tfc_ctl_signal_phasedir
                 String phasePlanID = (String) row.getField(15);
@@ -128,7 +127,7 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
                 // interAndDirMapPhaseNo
                 PhaseInfo phaseInfo = new PhaseInfo(interId, phasePlanID, phaseName);
                 phaseInfo.setfRid(fRid);
-                phaseInfo.setTurnDirNo(turnDirNo.toString());
+                phaseInfo.setTurnDirNo(turnDirNo);
                 interAndDirMapPhaseNo.putIfAbsent(keyInterFridTurndir, new HashSet<>());
                 interAndDirMapPhaseNo.get(keyInterFridTurndir).add(phaseInfo);
 
@@ -312,7 +311,7 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
                 new ArrayList<String>() {
                     {
                         add("rid");
-                        add("len");
+                        add("length");
                     }
                 }
         );
