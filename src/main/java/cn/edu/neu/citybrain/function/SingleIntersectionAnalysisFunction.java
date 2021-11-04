@@ -15,6 +15,7 @@ import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
 import org.apache.flink.types.Row;
 import org.apache.flink.util.Collector;
 
+import java.sql.ResultSet;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -87,8 +88,7 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
 
                 // dws_tfc_state_signinterfridseq_nd_index_m
                 String fRidSeq = (String) row.getField(13);
-                String benchmarkNostopTravelTime3mStr = (String) row.getField(14);
-                Double benchmarkNostopTravelTime3m = (benchmarkNostopTravelTime3mStr == null || benchmarkNostopTravelTime3mStr.length() == 0) ? 0.0 : Double.parseDouble(benchmarkNostopTravelTime3mStr);
+                Double benchmarkNostopTravelTime3m = (Double) row.getField(14);
 
                 // dwd_tfc_ctl_signal_phasedir
                 String phasePlanID = (String) row.getField(15);
@@ -122,7 +122,7 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
                 // interAndDirMapPhaseNo
                 PhaseInfo phaseInfo = new PhaseInfo(interId, phasePlanID, phaseName);
                 phaseInfo.setfRid(fRid);
-                phaseInfo.setTurnDirNo(turnDirNo.toString());
+                phaseInfo.setTurnDirNo(turnDirNo);
                 interAndDirMapPhaseNo.putIfAbsent(keyInterFridTurndir, new HashSet<>());
                 interAndDirMapPhaseNo.get(keyInterFridTurndir).add(phaseInfo);
 
@@ -257,10 +257,9 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
                 new ArrayList<String>() {
                     {
                         add("rid");
-                        add("len");
+                        add("length");
                     }
-                }
-        );
+                });
         dbQuery.add(
                 dwd_tfc_rltn_wide_inter_lane,
                 sql_dwd_tfc_rltn_wide_inter_lane,
@@ -272,8 +271,7 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
                         add("turnDirNoList");
                         add("laneId");
                     }
-                }
-        );
+                });
         dbQuery.add(
                 dws_tfc_state_signinterfridseq_nd_index_m,
                 sql_dws_tfc_state_signinterfridseq_nd_index_m,
@@ -299,8 +297,7 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
                         add("phasePlanId");
                         add("phaseName");
                     }
-                }
-        );
+                });
 
         dbQuery.execute();
 
@@ -345,5 +342,19 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
         if (this.executorService != null) {
             this.executorService.shutdown();
         }
+    }
+
+    public static void main(String[] args) throws Exception {
+        new SingleIntersectionAnalysisFunction().open(null);
+//        try {
+//            ResultSet resultSet = DBConnection.getConnection().prepareStatement("select inter_id as interId, f_rid as fRid, turn_dir_no as turnDirNo, phase_plan_id as phasePlanId, phase_name as phaseName from dwd_tfc_ctl_signal_phasedir").executeQuery();
+//            int cnt = 0;
+//            while (resultSet.next()) {
+//                cnt++;
+//            }
+//            System.out.println(cnt);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
     }
 }
