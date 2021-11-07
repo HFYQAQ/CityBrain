@@ -106,6 +106,6 @@ public class CityBrainEntry {
 //        singleIntersectionAnalysisResult.writeAsText("/opt/flink/citybrain.out", OVERWRITE);
         singleIntersectionAnalysisResult.addSink(new KafkaSinkFunction(servers));
 
-        env.execute("CityBrainJob");
+        env.execute("CityBrainJobWithCache");
     }
 }

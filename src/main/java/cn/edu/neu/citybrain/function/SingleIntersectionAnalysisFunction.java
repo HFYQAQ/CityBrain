@@ -171,7 +171,7 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
         long duration = afterProcess - beforeProcess;
         double throughoutput = amount * 1.0 / duration * 1000;
         double delay = duration * 1.0 / amount;
-        System.out.println("throughoutput: " + throughoutput + "/s     " + "delay: " + delay + "ms");
+        System.out.println("[flink-cache] throughput: " + throughoutput + "/s     " + "delay: " + delay + "ms");
 
         // log
         int cnt = 0;
