@@ -105,7 +105,7 @@ public class CityBrainEntry {
                 .window(TumblingEventTimeWindows.of(Time.minutes(1)))
                 .process(new SingleIntersectionAnalysisFunction());
 //        singleIntersectionAnalysisResult.writeAsText("/opt/flink/citybrain.out", OVERWRITE);
-        singleIntersectionAnalysisResult.addSink(new KafkaSinkFunction(servers));
+        singleIntersectionAnalysisResult.addSink(new KafkaSinkFunction(servers)).setParallelism(1);
 
         env.execute("CityBrainJobWithCache");
     }
