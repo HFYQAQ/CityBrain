@@ -7,9 +7,10 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 
+import java.util.List;
 import java.util.Properties;
 
-public class KafkaSinkFunction extends RichSinkFunction<RoadMetric> {
+public class KafkaSinkFunction extends RichSinkFunction<List<RoadMetric>> {
     private static final String OUT_TOPIC = "citybrain_out";
     private String servers;
     private Producer<String, String> producer;
@@ -44,7 +45,7 @@ public class KafkaSinkFunction extends RichSinkFunction<RoadMetric> {
     }
 
     @Override
-    public void invoke(RoadMetric value, Context context) throws Exception {
+    public void invoke(List<RoadMetric> value, Context context) throws Exception {
         if (cnt == INTERVAL) {
             long duration = System.currentTimeMillis() - begin;
             throughput = INTERVAL * 1.0 / duration * 1000;
@@ -58,7 +59,9 @@ public class KafkaSinkFunction extends RichSinkFunction<RoadMetric> {
             begin = System.currentTimeMillis();
         }
 
-        producer.send(new ProducerRecord<>(OUT_TOPIC, value.toString()));
+        for (RoadMetric roadMetric : value) {
+            producer.send(new ProducerRecord<>(OUT_TOPIC, roadMetric.toString()));
+        }
         cnt++;
     }
 

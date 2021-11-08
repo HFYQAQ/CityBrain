@@ -19,6 +19,8 @@ import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindo
 import org.apache.flink.streaming.api.windowing.time.Time;
 import org.apache.flink.types.Row;
 
+import java.util.List;
+
 public class CityBrainEntry {
     public static void main(String[] args) throws Exception {
         // parameters
@@ -100,7 +102,7 @@ public class CityBrainEntry {
             }
         });
         // window
-        DataStream<RoadMetric> singleIntersectionAnalysisResult = speedRTWithWatermark
+        DataStream<List<RoadMetric>> singleIntersectionAnalysisResult = speedRTWithWatermark
                 .keyBy(0)
                 .window(TumblingEventTimeWindows.of(Time.minutes(1)))
                 .process(new SingleIntersectionAnalysisFunction());
