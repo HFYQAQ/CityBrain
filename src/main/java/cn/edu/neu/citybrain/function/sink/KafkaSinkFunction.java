@@ -1,6 +1,7 @@
 package cn.edu.neu.citybrain.function.sink;
 
 import cn.edu.neu.citybrain.dto.fRidSeqTurnDirIndexDTO;
+import cn.edu.neu.citybrain.dto.my.RoadMetric;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -9,7 +10,7 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 
 import java.util.Properties;
 
-public class KafkaSinkFunction extends RichSinkFunction<fRidSeqTurnDirIndexDTO> {
+public class KafkaSinkFunction extends RichSinkFunction<RoadMetric> {
     private static final String OUT_TOPIC = "citybrain_out";
     private String servers;
     private Producer<String, String> producer;
@@ -34,7 +35,7 @@ public class KafkaSinkFunction extends RichSinkFunction<fRidSeqTurnDirIndexDTO> 
     }
 
     @Override
-    public void invoke(fRidSeqTurnDirIndexDTO value, Context context) throws Exception {
+    public void invoke(RoadMetric value, Context context) throws Exception {
         producer.send(new ProducerRecord<>(OUT_TOPIC, value.toString()));
     }
 

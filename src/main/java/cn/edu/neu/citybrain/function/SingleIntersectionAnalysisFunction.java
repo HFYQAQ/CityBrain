@@ -5,6 +5,7 @@ import cn.edu.neu.citybrain.db.DBQuery;
 import cn.edu.neu.citybrain.db.JdbcSupport;
 import cn.edu.neu.citybrain.dto.*;
 import cn.edu.neu.citybrain.dto.my.RidGranularityInfo;
+import cn.edu.neu.citybrain.dto.my.RoadMetric;
 import cn.edu.neu.citybrain.dto.my.TurnGranularityInfo;
 import cn.edu.neu.citybrain.evaluation.SingleIntersectionAnalysisV2;
 import cn.edu.neu.citybrain.util.CityBrainUtil;
@@ -15,14 +16,13 @@ import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
 import org.apache.flink.types.Row;
 import org.apache.flink.util.Collector;
 
-import java.sql.ResultSet;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import static cn.edu.neu.citybrain.db.DBConstants.*;
 
-public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Row, fRidSeqTurnDirIndexDTO, Tuple, TimeWindow> {
+public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Row, RoadMetric, Tuple, TimeWindow> {
     private ExecutorService executorService;
 
     // base table
@@ -41,7 +41,7 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
 
     @Override
     // [0]tag, [1]rid, [2]travel_time, [3]speed, [4]reliability_code, [5]step_index_1mi, [6]step_index_10mi, [7]day_of_week, [8]timestamp
-    public void process(Tuple tuple, Context context, Iterable<Row> iterable, Collector<fRidSeqTurnDirIndexDTO> collector) throws Exception {
+    public void process(Tuple tuple, Context context, Iterable<Row> iterable, Collector<RoadMetric> collector) throws Exception {
         long beforeProcess = System.currentTimeMillis();
         int receiveCnt = 0;
         long amount = 0;
@@ -167,7 +167,16 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
             if (fRidSeqTurnDirIndexDTO.getTravelTime() != 0.0d) {
                 cnt++;
             }
-            collector.collect(fRidSeqTurnDirIndexDTO);
+
+            RoadMetric roadMetric = new RoadMetric(
+                    fRidSeqTurnDirIndexDTO.getInterId(),
+                    fRidSeqTurnDirIndexDTO.getfRid(),
+                    fRidSeqTurnDirIndexDTO.getTurnDirNo(),
+                    fRidSeqTurnDirIndexDTO.getTravelTime(),
+                    fRidSeqTurnDirIndexDTO.getDelay(),
+                    fRidSeqTurnDirIndexDTO.getStopCnt(),
+                    fRidSeqTurnDirIndexDTO.getQueue());
+            collector.collect(roadMetric);
         }
 
         System.out.println("spendtime=" + (afterProcess - beforeProcess) + "ms | " + "receiveCnt=" + receiveCnt + " | " + "rids=" + turnGranularityInfoMap.size() + " | " + "turns=" + results.size() + " | " + "notnull=" + cnt + " | " + "watermark=" + context.currentWatermark() + " | " + context.window());
