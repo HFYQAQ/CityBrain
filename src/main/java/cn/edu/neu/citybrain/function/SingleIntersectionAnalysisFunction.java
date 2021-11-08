@@ -161,13 +161,7 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
 //        double delay = duration * 1.0 / amount;
 //        System.out.println("[flink] throughoutput: " + throughoutput + "/s     " + "delay: " + delay + "ms");
 
-        // log
-        int cnt = 0;
         for (fRidSeqTurnDirIndexDTO fRidSeqTurnDirIndexDTO : results) {
-            if (fRidSeqTurnDirIndexDTO.getTravelTime() != 0.0d) {
-                cnt++;
-            }
-
             RoadMetric roadMetric = new RoadMetric(
                     fRidSeqTurnDirIndexDTO.getInterId(),
                     fRidSeqTurnDirIndexDTO.getfRid(),
@@ -178,8 +172,6 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
                     fRidSeqTurnDirIndexDTO.getQueue());
             collector.collect(roadMetric);
         }
-
-        System.out.println("spendtime=" + (afterProcess - beforeProcess) + "ms | " + "receiveCnt=" + receiveCnt + " | " + "rids=" + turnGranularityInfoMap.size() + " | " + "turns=" + results.size() + " | " + "notnull=" + cnt + " | " + "watermark=" + context.currentWatermark() + " | " + context.window());
     }
 
     private Row[] hashJoin(Row row,
