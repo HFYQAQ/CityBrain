@@ -78,7 +78,7 @@ public class SingleIntersectionAnalysisV2 {
         this.executorService = executorService;
     }
 
-    public List<fRidSeqTurnDirIndexDTO> evaluate(long stepIndex1mi, long stepIndex10mi, long dayOfWeek, long timestamp,
+    public Map<String, List<fRidSeqTurnDirIndexDTO>> evaluate(long stepIndex1mi, long stepIndex10mi, long dayOfWeek, long timestamp,
                                                  Map<String, List<TurnGranularityInfo>> turnGranularityInfoMap,
                                                  Map<String, Set<PhaseInfo>> interAndDirMapPhaseNo,
                                                  Map<String, Set<String>> interLaneMap) {
@@ -86,14 +86,14 @@ public class SingleIntersectionAnalysisV2 {
         this.interAndDirMapPhaseNo = interAndDirMapPhaseNo;
         this.interLaneMap = interLaneMap;
 
-        List<fRidSeqTurnDirIndexDTO> allResult = null;
+        Map<String, List<fRidSeqTurnDirIndexDTO>> allResult = null;
 
         try {
             prepareData(stepIndex1mi, stepIndex10mi, dayOfWeek, timestamp);
             allResult = caculate();
         } catch (Exception e) {
             e.printStackTrace();
-            return Collections.emptyList();
+            return Collections.EMPTY_MAP;
         }
 
         return allResult;
@@ -181,10 +181,11 @@ public class SingleIntersectionAnalysisV2 {
                 .forEach(op -> laneFlowMap.put(op.getLaneId(), op));
     }
 
-    private List<fRidSeqTurnDirIndexDTO> caculate() throws Exception {
-        List<fRidSeqTurnDirIndexDTO> allResults = new ArrayList<>();
+    private Map<String, List<fRidSeqTurnDirIndexDTO>> caculate() throws Exception {
+        Map<String, List<fRidSeqTurnDirIndexDTO>> allResults = new HashMap<>();
 
         for (Map.Entry<String, List<TurnGranularityInfo>> entry : turnGranularityInfoMap.entrySet()) {
+            List<fRidSeqTurnDirIndexDTO> results = new ArrayList<>();
 
             List<TurnGranularityInfo> list = entry.getValue();
             for (TurnGranularityInfo turnGranularityInfo : list) {
@@ -199,8 +200,9 @@ public class SingleIntersectionAnalysisV2 {
                 // 指标4
                 calOneDirectionQueue(turnGranularityInfo, curResult);
 
-                allResults.add(curResult);
+                results.add(curResult);
             }
+            allResults.put(entry.getKey(), results);
         }
         return allResults;
     }

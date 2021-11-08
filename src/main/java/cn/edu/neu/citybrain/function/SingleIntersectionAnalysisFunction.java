@@ -22,7 +22,7 @@ import java.util.concurrent.Executors;
 
 import static cn.edu.neu.citybrain.db.DBConstants.*;
 
-public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Row, RoadMetric, Tuple, TimeWindow> {
+public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Row, List<RoadMetric>, Tuple, TimeWindow> {
     private ExecutorService executorService;
 
     // base table
@@ -41,7 +41,7 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
 
     @Override
     // [0]tag, [1]rid, [2]travel_time, [3]speed, [4]reliability_code, [5]step_index_1mi, [6]step_index_10mi, [7]day_of_week, [8]timestamp
-    public void process(Tuple tuple, Context context, Iterable<Row> iterable, Collector<RoadMetric> collector) throws Exception {
+    public void process(Tuple tuple, Context context, Iterable<Row> iterable, Collector<List<RoadMetric>> collector) throws Exception {
         long beforeProcess = System.currentTimeMillis();
         int receiveCnt = 0;
         long amount = 0;
@@ -148,7 +148,7 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
         }
 
         SingleIntersectionAnalysisV2 estimator = new SingleIntersectionAnalysisV2(this.executorService);
-        List<fRidSeqTurnDirIndexDTO> results = estimator.evaluate(stepIndex1mi, stepIndex10mi, dayOfWeek, timestamp,
+        Map<String, List<fRidSeqTurnDirIndexDTO>> results = estimator.evaluate(stepIndex1mi, stepIndex10mi, dayOfWeek, timestamp,
                 turnGranularityInfoMap,
                 interAndDirMapPhaseNo,
                 interLaneMap);
@@ -161,16 +161,22 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
 //        double delay = duration * 1.0 / amount;
 //        System.out.println("[flink] throughoutput: " + throughoutput + "/s     " + "delay: " + delay + "ms");
 
-        for (fRidSeqTurnDirIndexDTO fRidSeqTurnDirIndexDTO : results) {
-            RoadMetric roadMetric = new RoadMetric(
-                    fRidSeqTurnDirIndexDTO.getInterId(),
-                    fRidSeqTurnDirIndexDTO.getfRid(),
-                    fRidSeqTurnDirIndexDTO.getTurnDirNo(),
-                    fRidSeqTurnDirIndexDTO.getTravelTime(),
-                    fRidSeqTurnDirIndexDTO.getDelay(),
-                    fRidSeqTurnDirIndexDTO.getStopCnt(),
-                    fRidSeqTurnDirIndexDTO.getQueue());
-            collector.collect(roadMetric);
+        for (Map.Entry<String, List<fRidSeqTurnDirIndexDTO>> entry : results.entrySet()) {
+            List<fRidSeqTurnDirIndexDTO> list = entry.getValue();
+
+            List<RoadMetric> res = new ArrayList<>();
+            for (fRidSeqTurnDirIndexDTO fRidSeqTurnDirIndexDTO : list) {
+                RoadMetric roadMetric = new RoadMetric(
+                        fRidSeqTurnDirIndexDTO.getInterId(),
+                        fRidSeqTurnDirIndexDTO.getfRid(),
+                        fRidSeqTurnDirIndexDTO.getTurnDirNo(),
+                        fRidSeqTurnDirIndexDTO.getTravelTime(),
+                        fRidSeqTurnDirIndexDTO.getDelay(),
+                        fRidSeqTurnDirIndexDTO.getStopCnt(),
+                        fRidSeqTurnDirIndexDTO.getQueue());
+                res.add(roadMetric);
+            }
+            collector.collect(res);
         }
     }
 
