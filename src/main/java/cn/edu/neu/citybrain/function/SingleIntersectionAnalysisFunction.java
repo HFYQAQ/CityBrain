@@ -156,10 +156,10 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
         long afterProcess = System.currentTimeMillis();
 
         // metric
-        long duration = afterProcess - beforeProcess;
-        double throughoutput = amount * 1.0 / duration * 1000;
-        double delay = duration * 1.0 / amount;
-        System.out.println("[flink] throughoutput: " + throughoutput + "/s     " + "delay: " + delay + "ms");
+//        long duration = afterProcess - beforeProcess;
+//        double throughoutput = amount * 1.0 / duration * 1000;
+//        double delay = duration * 1.0 / amount;
+//        System.out.println("[flink] throughoutput: " + throughoutput + "/s     " + "delay: " + delay + "ms");
 
         // log
         int cnt = 0;
