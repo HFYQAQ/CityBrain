@@ -16,9 +16,9 @@ public class KafkaSinkFunction extends RichSinkFunction<List<RoadMetric>> {
     private Producer<String, String> producer;
 
     //metric
-    private long cnt = 0;
-    private static long INTERVAL = 10000;
+    private static long INTERVAL = 3 * 1000;
     private long begin = System.currentTimeMillis();
+    private long cnt = 0;
     private double throughput = 0;
     private double delay = 0;
     private double totalThroughput = 0;
@@ -46,13 +46,14 @@ public class KafkaSinkFunction extends RichSinkFunction<List<RoadMetric>> {
 
     @Override
     public void invoke(List<RoadMetric> value, Context context) throws Exception {
-        if (cnt == INTERVAL) {
-            long duration = System.currentTimeMillis() - begin;
-            throughput = INTERVAL * 1.0 / duration * 1000;
-            delay = duration * 1.0 / INTERVAL;
-
-            totalThroughput += throughput;
-            totalDelay += delay;
+        if (cnt != 0 && System.currentTimeMillis() - begin >= INTERVAL) {
+            throughput = cnt * 1.0 / INTERVAL * 1000;
+            delay = INTERVAL * 1.0 / cnt;
+            System.out.println("hfy: " + cnt + ", " + throughput + "/s, " + delay + "ms.");
+            if (stCnt != 0) { // 第一次不统计
+                totalThroughput += throughput;
+                totalDelay += delay;
+            }
             stCnt++;
 
             cnt = 0;
@@ -71,8 +72,8 @@ public class KafkaSinkFunction extends RichSinkFunction<List<RoadMetric>> {
 
         producer.close();
 
-        double avgThroughput = totalThroughput / stCnt;
-        double avgDelay = totalDelay / stCnt;
+        double avgThroughput = totalThroughput / (stCnt - 1);
+        double avgDelay = totalDelay / (stCnt - 1);
         System.out.println("[flink] avg_throughput: " + avgThroughput + "/s     " + "avg_delay: " + avgDelay + "ms");
     }
 }
