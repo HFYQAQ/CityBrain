@@ -78,6 +78,15 @@ public class MetricAnalysis {
             }
         }
 
+        metrics.sort(new Comparator<Metric>() {
+            @Override
+            public int compare(Metric o1, Metric o2) {
+                if (!o1.getDt().equals(o2.getDt())) {
+                    return o1.getDt().compareTo(o2.getDt());
+                }
+                return (int) (o1.getStepIndex1mi() - o2.getStepIndex1mi());
+            }
+        });
         for (Metric metric : metrics) {
             System.out.println(metric.toString());
         }
