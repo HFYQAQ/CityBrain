@@ -74,6 +74,8 @@ public class CityBrainEntry {
                 .setMaxParallelism(maxParallelism);
         env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
         env.getConfig().setAutoWatermarkInterval(1000);
+        ParameterTool globalParams = ParameterTool.fromArgs(new String[] {"--jobName", ConstantUtil.JOB_NAME});
+        env.getConfig().setGlobalJobParameters(globalParams);
 
         // source
         SourceFunction<Row> sourceFunction = null;
