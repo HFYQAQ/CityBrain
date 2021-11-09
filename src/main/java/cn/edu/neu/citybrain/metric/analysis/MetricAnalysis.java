@@ -68,7 +68,8 @@ public class MetricAnalysis {
                 totalAmount += statistic.getAmount();
                 totalDuration += statistic.getDuration();
             }
-            double throughput = totalAmount * 1.0 / totalDuration * 1000;
+            long avgDuration = totalDuration / list.size();
+            double throughput = totalAmount * 1.0 / avgDuration * 1000;
             double delay = totalDuration * 1.0 / totalAmount;
             String[] splits = CityBrainUtil.split(keyJobDtIndex);
 
