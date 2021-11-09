@@ -81,6 +81,12 @@ public class MetricAnalysis {
         for (Metric metric : metrics) {
             System.out.println(metric.toString());
         }
+
+        close();
+    }
+
+    private void close() {
+        executorService.shutdown();
     }
 
     private static String formatJobName(String jobName) {
