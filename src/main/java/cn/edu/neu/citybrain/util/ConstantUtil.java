@@ -1,6 +1,9 @@
 package cn.edu.neu.citybrain.util;
 
 public class ConstantUtil {
+    public static final String JOB_NAME = "CityBrainJob";
+    public static final String JOB_ID = "CityBrainJob" + "_" + System.currentTimeMillis();
+
     public static final long CACHE_TIMEOUT = 24 * 60 * 60 * 1000;
     public static final long SOURCE_DELAY = 0 * 60 * 1000;
 

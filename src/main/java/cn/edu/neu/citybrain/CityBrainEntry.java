@@ -109,8 +109,8 @@ public class CityBrainEntry {
                 .process(new SingleIntersectionAnalysisFunction());
 //        singleIntersectionAnalysisResult.writeAsText("/opt/flink/citybrain.out", OVERWRITE);
         singleIntersectionAnalysisResult.addSink(new KafkaSinkFunction(servers)).setParallelism(1);
-        singleIntersectionAnalysisResult.addSink(new MetricSinkFunction()).setParallelism(1);
+//        singleIntersectionAnalysisResult.addSink(new MetricSinkFunction()).setParallelism(1);
 
-        env.execute("CityBrainJob");
+        env.execute(ConstantUtil.JOB_ID);
     }
 }
