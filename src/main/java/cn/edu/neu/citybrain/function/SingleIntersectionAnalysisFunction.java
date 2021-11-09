@@ -36,7 +36,7 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
     Map<String, PhaseInfo> phaseInfoMap = new HashMap<>();
 
     // metric
-    private final String METRIC_SQL = "insert into metric(job_id,task_idx,dt,step_index_1mi,amount,duration) values(?,?,?,?,?,?)";
+    private final String METRIC_SQL = "insert into metric(job_name,subtask_index,dt,step_index_1mi,amount,duration) values(?,?,?,?,?,?)";
     private Connection metricConnection;
     private PreparedStatement metricPS;
 
@@ -57,7 +57,6 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
     public void process(Tuple tuple, Context context, Iterable<Row> iterable, Collector<List<RoadMetric>> collector) throws Exception {
         long beforeProcess = System.currentTimeMillis();
         long amount = 0;
-        DBQuery dbQuery = new DBQuery(executorService);
 
         Map<String, List<TurnGranularityInfo>> turnGranularityInfoMap = new HashMap<>();
         Map<String, Set<PhaseInfo>> interAndDirMapPhaseNo = new HashMap<>();
@@ -194,7 +193,7 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
 
     private void upload(int taskIdx, String dt, Long stepIndex1mi, long amount, long duration) throws Exception {
         metricPS.clearParameters();
-        metricPS.setObject(1, ConstantUtil.JOB_ID);
+        metricPS.setObject(1, ConstantUtil.JOB_NAME);
         metricPS.setObject(2, taskIdx);
         metricPS.setObject(3, dt);
         metricPS.setObject(4, stepIndex1mi);

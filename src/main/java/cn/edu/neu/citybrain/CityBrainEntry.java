@@ -111,6 +111,6 @@ public class CityBrainEntry {
         singleIntersectionAnalysisResult.addSink(new KafkaSinkFunction(servers)).setParallelism(1);
 //        singleIntersectionAnalysisResult.addSink(new MetricSinkFunction()).setParallelism(1);
 
-        env.execute(ConstantUtil.JOB_ID);
+        env.execute(ConstantUtil.JOB_NAME);
     }
 }
