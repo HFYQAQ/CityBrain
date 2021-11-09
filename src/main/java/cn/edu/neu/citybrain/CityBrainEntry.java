@@ -6,6 +6,7 @@ import cn.edu.neu.citybrain.dto.fRidSeqTurnDirIndexDTO;
 import cn.edu.neu.citybrain.dto.my.RoadMetric;
 import cn.edu.neu.citybrain.function.SingleIntersectionAnalysisFunction;
 import cn.edu.neu.citybrain.function.sink.KafkaSinkFunction;
+import cn.edu.neu.citybrain.function.sink.MetricSinkFunction;
 import cn.edu.neu.citybrain.function.source.SpeedRTSourceFunction;
 import cn.edu.neu.citybrain.util.ConstantUtil;
 import org.apache.flink.api.java.utils.ParameterTool;
@@ -108,6 +109,7 @@ public class CityBrainEntry {
                 .process(new SingleIntersectionAnalysisFunction());
 //        singleIntersectionAnalysisResult.writeAsText("/opt/flink/citybrain.out", OVERWRITE);
         singleIntersectionAnalysisResult.addSink(new KafkaSinkFunction(servers)).setParallelism(1);
+        singleIntersectionAnalysisResult.addSink(new MetricSinkFunction()).setParallelism(1);
 
         env.execute("CityBrainJob");
     }
