@@ -6,6 +6,7 @@ import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 
 import java.util.List;
 
+@Deprecated
 public class MetricSinkFunction extends RichSinkFunction<List<RoadMetric>> {
     //metric
     private static long INTERVAL = 3 * 1000;

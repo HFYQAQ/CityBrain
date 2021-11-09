@@ -42,7 +42,7 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
     Map<Long, List<InterFridSeqTurnDirIndex>> cache2;
 
     // metric
-    private final String METRIC_SQL = "insert into metric(job_id,task_idx,dt,step_index_1mi,amount,duration) values(?,?,?,?,?,?)";
+    private final String METRIC_SQL = "insert into metric(job_name,subtask_index,dt,step_index_1mi,amount,duration) values(?,?,?,?,?,?)";
     private Connection metricConnection;
     private PreparedStatement metricPS;
 
