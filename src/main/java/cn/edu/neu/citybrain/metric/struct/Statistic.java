@@ -4,7 +4,7 @@ import cn.edu.neu.citybrain.util.CityBrainUtil;
 
 public class Statistic {
     private String jobName;
-    private int subtaskIndex;
+    private long subtaskIndex;
     private String dt;
     private long stepIndex1mi;
 
@@ -32,11 +32,11 @@ public class Statistic {
         return jobName;
     }
 
-    public void setSubtaskIndex(int subtaskIndex) {
+    public void setSubtaskIndex(long subtaskIndex) {
         this.subtaskIndex = subtaskIndex;
     }
 
-    public int getSubtaskIndex() {
+    public long getSubtaskIndex() {
         return subtaskIndex;
     }
 
