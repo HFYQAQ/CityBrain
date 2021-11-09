@@ -1,5 +1,7 @@
 package cn.edu.neu.citybrain.metric.struct;
 
+import cn.edu.neu.citybrain.util.CityBrainUtil;
+
 public class Statistic {
     private String jobName;
     private int subtaskIndex;
@@ -8,6 +10,19 @@ public class Statistic {
 
     private long amount;
     private long duration;
+
+    public Statistic() {
+
+    }
+
+    public Statistic(String jobName, int subtaskIndex, String dt, long stepIndex1mi, long amount, long duration) {
+        this.jobName = jobName;
+        this.subtaskIndex = subtaskIndex;
+        this.dt = dt;
+        this.stepIndex1mi = stepIndex1mi;
+        this.amount = amount;
+        this.duration = duration;
+    }
 
     public void setJobName(String jobName) {
         this.jobName = jobName;
@@ -33,11 +48,11 @@ public class Statistic {
         return dt;
     }
 
-    public void setStep_index(long stepIndex1mi) {
+    public void setStepIndex1mi(long stepIndex1mi) {
         this.stepIndex1mi = stepIndex1mi;
     }
 
-    public long getStep_index() {
+    public long getStepIndex1mi() {
         return stepIndex1mi;
     }
 
@@ -55,5 +70,9 @@ public class Statistic {
 
     public long getDuration() {
         return duration;
+    }
+
+    public String getKeyJobDtIndex() {
+        return CityBrainUtil.concat(jobName, dt, stepIndex1mi);
     }
 }

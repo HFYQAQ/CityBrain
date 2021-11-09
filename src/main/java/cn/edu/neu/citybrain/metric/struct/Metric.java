@@ -8,6 +8,18 @@ public class Metric {
     private double throughput;
     private double delay;
 
+    public Metric() {
+
+    }
+
+    public Metric(String jobName, String dt, long stepIndex1mi, double throughput, double delay) {
+        this.jobName = jobName;
+        this.dt = dt;
+        this.stepIndex1mi = stepIndex1mi;
+        this.throughput = throughput;
+        this.delay = delay;
+    }
+
     public void setJobName(String jobName) {
         this.jobName = jobName;
     }
