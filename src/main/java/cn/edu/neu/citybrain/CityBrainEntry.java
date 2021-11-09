@@ -90,7 +90,7 @@ public class CityBrainEntry {
                 break;
         }
         DataStream<Row> speedRTSource = env
-                .addSource(sourceFunction)
+                .addSource(sourceFunction).setParallelism(1)
                 .name("speedRT")
                 .returns(KafkaSpeedRTSourceFunction.getRowTypeInfo());
 
