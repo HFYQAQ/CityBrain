@@ -36,7 +36,7 @@ public class MetricAnalysis {
 
     private void analysis(String jobName) {
         String tag = "statistic";
-        String sql = "select * from metric where job_name=?";
+        String sql = "select * from statistic where job_name=?";
         DBQuery dbQuery = new DBQuery(executorService);
         dbQuery.add(
                 tag,
