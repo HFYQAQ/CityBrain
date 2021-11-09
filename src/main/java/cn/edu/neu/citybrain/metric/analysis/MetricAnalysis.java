@@ -5,8 +5,8 @@ import cn.edu.neu.citybrain.util.ParameterTool;
 import java.text.SimpleDateFormat;
 
 public class MetricAnalysis {
-    public static void main(String[] args) {
-        ParameterTool parameterTool = new ParameterTool();
+    public static void main(String[] args) throws Exception {
+        ParameterTool parameterTool = ParameterTool.fromArgs(args);
 
         if (parameterTool.has("h")) {
             System.out.printf("Usage:\n\t%-20s%s\n",
@@ -24,7 +24,7 @@ public class MetricAnalysis {
     }
 
     private static String formatJobName(String jobName) {
-        String timestamp = jobName.substring(jobName.indexOf("_") + 1);
+        long timestamp = Long.parseLong(jobName.substring(jobName.indexOf("_") + 1));
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
         return sdf.format(timestamp);
     }
