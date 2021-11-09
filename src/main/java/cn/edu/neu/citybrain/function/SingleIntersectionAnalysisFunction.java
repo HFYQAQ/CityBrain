@@ -193,7 +193,7 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
 
     private void upload(int taskIdx, String dt, Long stepIndex1mi, long amount, long duration) throws Exception {
         metricPS.clearParameters();
-        metricPS.setObject(1, ConstantUtil.JOB_NAME);
+        metricPS.setObject(1, getRuntimeContext().getTaskName());
         metricPS.setObject(2, taskIdx);
         metricPS.setObject(3, dt);
         metricPS.setObject(4, stepIndex1mi);

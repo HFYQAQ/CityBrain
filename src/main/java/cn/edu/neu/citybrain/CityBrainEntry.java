@@ -2,11 +2,9 @@ package cn.edu.neu.citybrain;
 
 import cn.edu.neu.citybrain.connector.kafka.source.KafkaSpeedRTSourceFunction;
 import cn.edu.neu.citybrain.connector.kafka.util.Constants;
-import cn.edu.neu.citybrain.dto.fRidSeqTurnDirIndexDTO;
 import cn.edu.neu.citybrain.dto.my.RoadMetric;
 import cn.edu.neu.citybrain.function.SingleIntersectionAnalysisFunction;
 import cn.edu.neu.citybrain.function.sink.KafkaSinkFunction;
-import cn.edu.neu.citybrain.function.sink.MetricSinkFunction;
 import cn.edu.neu.citybrain.function.source.SpeedRTSourceFunction;
 import cn.edu.neu.citybrain.util.ConstantUtil;
 import org.apache.flink.api.java.utils.ParameterTool;
