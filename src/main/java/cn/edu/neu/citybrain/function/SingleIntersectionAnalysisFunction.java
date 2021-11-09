@@ -12,6 +12,7 @@ import cn.edu.neu.citybrain.evaluation.SingleIntersectionAnalysisV2;
 import cn.edu.neu.citybrain.util.CityBrainUtil;
 import cn.edu.neu.citybrain.util.ConstantUtil;
 import org.apache.flink.api.java.tuple.Tuple;
+import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.functions.windowing.ProcessWindowFunction;
 import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
@@ -212,7 +213,9 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
 
     private void upload(int taskIdx, String dt, Long stepIndex1mi, long amount, long duration) throws Exception {
         metricPS.clearParameters();
-        metricPS.setObject(1, getRuntimeContext().getTaskName());
+        ParameterTool parameterTool = (ParameterTool) getRuntimeContext().getExecutionConfig().getGlobalJobParameters();
+        String jobName = parameterTool.get("jobName");
+        metricPS.setObject(1, jobName);
         metricPS.setObject(2, taskIdx);
         metricPS.setObject(3, dt);
         metricPS.setObject(4, stepIndex1mi);
