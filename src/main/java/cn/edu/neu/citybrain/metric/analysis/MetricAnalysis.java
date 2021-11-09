@@ -36,7 +36,7 @@ public class MetricAnalysis {
 
     private void analysis(String jobName) {
         String tag = "statistic";
-        String sql = "select * from statistic where job_name=?";
+        String sql = "select job_name as jobName, subtask_index as subtaskIndex, dt, step_index_1mi as stepIndex1mi, amount, duration from statistic where job_name=?";
         DBQuery dbQuery = new DBQuery(executorService);
         dbQuery.add(
                 tag,
@@ -78,7 +78,9 @@ public class MetricAnalysis {
             }
         }
 
-        System.out.println(Arrays.toString(metrics.toArray()));
+        for (Metric metric : metrics) {
+            System.out.println(metric.toString());
+        }
     }
 
     private static String formatJobName(String jobName) {
