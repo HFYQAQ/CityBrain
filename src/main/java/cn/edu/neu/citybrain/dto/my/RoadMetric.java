@@ -93,16 +93,7 @@ public class RoadMetric {
 
     @Override
     public String toString() {
-        return "RoadMetric{" +
-                "interId='" + interId + '\'' +
-                ", fRid='" + fRid + '\'' +
-                ", turnDirNo=" + turnDirNo +
-                ", dt='" + dt + '\'' +
-                ", stepIndex1mi=" + stepIndex1mi +
-                ", travelTime=" + travelTime +
-                ", delay=" + delay +
-                ", stopCnt=" + stopCnt +
-                ", queue=" + queue +
-                '}';
+        String format = "%s,%s,%s,%s,%s,%s,%s,%s,%s";
+        return String.format(format, interId, fRid, turnDirNo, dt, stepIndex1mi, travelTime, delay, stopCnt, queue);
     }
 }
