@@ -5,6 +5,7 @@ import cn.edu.neu.citybrain.connector.kafka.util.Constants;
 import cn.edu.neu.citybrain.dto.my.RoadMetric;
 import cn.edu.neu.citybrain.function.SingleIntersectionAnalysisFunction;
 import cn.edu.neu.citybrain.function.sink.KafkaSinkFunction;
+import cn.edu.neu.citybrain.function.sink.MySQLSinkFunction;
 import cn.edu.neu.citybrain.function.source.SpeedRTSourceFunction;
 import cn.edu.neu.citybrain.util.ConstantUtil;
 import org.apache.flink.api.java.utils.ParameterTool;
@@ -108,7 +109,8 @@ public class CityBrainEntry {
                 .window(TumblingEventTimeWindows.of(Time.minutes(1)))
                 .process(new SingleIntersectionAnalysisFunction());
 //        singleIntersectionAnalysisResult.writeAsText("/opt/flink/citybrain.out", OVERWRITE);
-        singleIntersectionAnalysisResult.addSink(new KafkaSinkFunction(servers)).setParallelism(1);
+//        singleIntersectionAnalysisResult.addSink(new KafkaSinkFunction(servers)).setParallelism(1);
+        singleIntersectionAnalysisResult.addSink(new MySQLSinkFunction()).setParallelism(1);
 //        singleIntersectionAnalysisResult.addSink(new MetricSinkFunction()).setParallelism(1);
 
         env.execute(ConstantUtil.JOB_NAME);
