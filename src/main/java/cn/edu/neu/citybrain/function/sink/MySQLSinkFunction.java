@@ -13,6 +13,7 @@ public class MySQLSinkFunction extends RichSinkFunction<List<RoadMetric>> {
     // id, inter_id, f_rid, turn_dir_no, dt, step_index, travel_time, delay_dur, stop_cnt, queue_len
 //    private final String SQL = "insert into statistic(job_name,subtask_index,dt,step_index_1mi,amount,duration) values(?,?,?,?,?,?)";
     private final String SQL = "insert into inter_metric_v2(inter_id, f_rid, turn_dir_no, dt, step_index, travel_time, delay_dur, stop_cnt, queue_len) values(?,?,?,?,?,?,?,?,?)";
+
     private Connection connection;
     private PreparedStatement ps;
 
@@ -21,14 +22,13 @@ public class MySQLSinkFunction extends RichSinkFunction<List<RoadMetric>> {
         super.open(parameters);
 
         connection = DBConnection.getConnection();
+        connection.setAutoCommit(false);
         ps = connection.prepareStatement(SQL);
     }
 
     @Override
     public void invoke(List<RoadMetric> value, Context context) throws Exception {
         for (RoadMetric roadMetric : value) {
-            ps.clearParameters();
-
             // position
             String interId = roadMetric.getInterId();
             String fRid = roadMetric.getfRid();
@@ -51,8 +51,11 @@ public class MySQLSinkFunction extends RichSinkFunction<List<RoadMetric>> {
             ps.setObject(7, delayDur);
             ps.setObject(8, stopCnt);
             ps.setObject(9, queueLen);
-            ps.executeUpdate();
+
+            ps.addBatch();
         }
+        ps.executeBatch();
+        connection.commit();
     }
 
     @Override
