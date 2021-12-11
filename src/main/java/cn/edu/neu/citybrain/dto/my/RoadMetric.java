@@ -5,15 +5,21 @@ public class RoadMetric {
     private String fRid;
     private Long turnDirNo;
 
+    private String dt;
+    private Long stepIndex1mi;
+
     private Double travelTime;
     private Double delay;
     private Double stopCnt;
     private Double queue;
 
-    public RoadMetric(String interId, String fRid, Long turnDirNo, Double travelTime, Double delay, Double stopCnt, Double queue) {
+    public RoadMetric(String interId, String fRid, Long turnDirNo, String dt, Long stepIndex1mi, Double travelTime, Double delay, Double stopCnt, Double queue) {
         this.interId = interId;
         this.fRid = fRid;
         this.turnDirNo = turnDirNo;
+
+        this.dt = dt;
+        this.stepIndex1mi = stepIndex1mi;
 
         this.travelTime = travelTime;
         this.delay = delay;
@@ -77,12 +83,22 @@ public class RoadMetric {
         return queue;
     }
 
+    public String getDt() {
+        return dt;
+    }
+
+    public Long getStepIndex1mi() {
+        return stepIndex1mi;
+    }
+
     @Override
     public String toString() {
         return "RoadMetric{" +
                 "interId='" + interId + '\'' +
                 ", fRid='" + fRid + '\'' +
                 ", turnDirNo=" + turnDirNo +
+                ", dt='" + dt + '\'' +
+                ", stepIndex1mi=" + stepIndex1mi +
                 ", travelTime=" + travelTime +
                 ", delay=" + delay +
                 ", stopCnt=" + stopCnt +

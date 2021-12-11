@@ -182,6 +182,8 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
                         fRidSeqTurnDirIndexDTO.getInterId(),
                         fRidSeqTurnDirIndexDTO.getfRid(),
                         fRidSeqTurnDirIndexDTO.getTurnDirNo(),
+                        dt,
+                        stepIndex1mi,
                         fRidSeqTurnDirIndexDTO.getTravelTime(),
                         fRidSeqTurnDirIndexDTO.getDelay(),
                         fRidSeqTurnDirIndexDTO.getStopCnt(),
