@@ -95,11 +95,11 @@ public class Kafka2Mysql {
                             "\t%-20s%s\n" +
                             "\t%-20s%s\n",
                     "--servers", "kafka servers to connect, default value is \"kafka-service:9092\".",
-                    "--topic", "topic which to load, default value is \"citybrain_out\".");
+                    "--topic", "topic which to load, default value is \"inter_metric\".");
             return;
         }
         String servers = parameterTool.get("servers", "kafka-service:9092");
-        String topic = parameterTool.get("topic", "citybrain_out");
+        String topic = parameterTool.get("topic", "inter_metric");
 
         // load
         loadDataFromSpeedRT(servers, topic);
