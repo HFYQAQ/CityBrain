@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Properties;
 
 public class KafkaSinkFunction extends RichSinkFunction<List<RoadMetric>> {
-    private static final String OUT_TOPIC = "citybrain_out";
+    private static final String OUT_TOPIC = "inter_metric";
     private String servers;
     private Producer<String, String> producer;
 
