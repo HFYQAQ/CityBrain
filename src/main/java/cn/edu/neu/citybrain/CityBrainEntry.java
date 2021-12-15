@@ -33,8 +33,10 @@ public class CityBrainEntry {
                             "\t%-20s%s\n" +
                             "\t%-20s%s\n" +
                             "\t%-20s%s\n" +
+                            "\t%-20s%s\n" +
                             "\t%-20s%s\n",
                     "--source", "kafka or mysql, mysql source is used to debug, default value is kafka",
+                    "--input-topic", "kafka topic which to read, default value is \"mock_speed_rt\".",
                     "--output-topic", "kafka topic which to restore results, default value is \"inter_metric\".",
                     "--servers", "kafka servers to connect, must be specified explicitly for kafka source, default value is \"" + Constants.ASTERIA_KAFKA_SERVER + "\".",
                     "--sourceDelay", "source delay for stream source, default value is \"" + ConstantUtil.SOURCE_DELAY + "\"(ms).",
@@ -46,7 +48,11 @@ public class CityBrainEntry {
         String source = parameterTool.get("source") == null ?
                 "kafka" :
                 parameterTool.get("source");
-        // source
+        // input-topic
+        String inputTopic = parameterTool.get("input-topic") == null ?
+                "mock_speed_rt" :
+                parameterTool.get("input-topic");
+        // output-topic
         String outputTopic = parameterTool.get("output-topic") == null ?
                 "inter_metric" :
                 parameterTool.get("output-topic");
@@ -69,8 +75,10 @@ public class CityBrainEntry {
                         "\t%-20s%s\n" +
                         "\t%-20s%s\n" +
                         "\t%-20s%s\n" +
+                        "\t%-20s%s\n" +
                         "\t%-20s%s\n",
                 "--source", source,
+                "--input-topic", inputTopic,
                 "--output-topic", outputTopic,
                 "--servers", servers,
                 "--sourceDelay", sourceDelay,
@@ -90,13 +98,13 @@ public class CityBrainEntry {
         SourceFunction<Row> sourceFunction = null;
         switch (source) {
             case "kafka":
-                sourceFunction = new KafkaSpeedRTSourceFunction(servers, sourceDelay, parallelism, maxParallelism);
+                sourceFunction = new KafkaSpeedRTSourceFunction(servers, inputTopic, sourceDelay, parallelism, maxParallelism);
                 break;
             case "mysql":
                 sourceFunction = new SpeedRTSourceFunction(sourceDelay, parallelism, maxParallelism);
                 break;
             default:
-                sourceFunction = new KafkaSpeedRTSourceFunction(servers, sourceDelay, parallelism, maxParallelism);
+                sourceFunction = new KafkaSpeedRTSourceFunction(servers, inputTopic, sourceDelay, parallelism, maxParallelism);
                 break;
         }
         DataStream<Row> speedRTSource = env

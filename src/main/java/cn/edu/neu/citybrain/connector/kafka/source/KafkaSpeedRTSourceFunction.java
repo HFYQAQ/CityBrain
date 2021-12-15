@@ -21,6 +21,7 @@ import java.util.Properties;
 public class KafkaSpeedRTSourceFunction extends RichSourceFunction<Row> {
     private Consumer<String, String> consumer;
     private String servers;
+    private String topic;
     private long sourceDelay;
     private int parallelism;
     private int maxParallelism;
@@ -32,8 +33,9 @@ public class KafkaSpeedRTSourceFunction extends RichSourceFunction<Row> {
     private long numRecord;
     private int[] assignedKeysDistribution;
 
-    public KafkaSpeedRTSourceFunction(String servers, long sourceDelay, int parallelism, int maxParallelism) {
+    public KafkaSpeedRTSourceFunction(String servers, String topic, long sourceDelay, int parallelism, int maxParallelism) {
         this.servers = servers;
+        this.topic = topic;
         this.sourceDelay = sourceDelay;
         this.parallelism = parallelism;
         this.maxParallelism = maxParallelism;
@@ -70,7 +72,7 @@ public class KafkaSpeedRTSourceFunction extends RichSourceFunction<Row> {
         }
         System.out.println("unblock stream");
 
-        consumer.subscribe(Arrays.asList(Constants.TOPIC_DWS_TFC_STATE_RID_TP_LASTSPEED_RT));
+        consumer.subscribe(Arrays.asList(topic));
         for (;;) {
             ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(500));
             loop++;
