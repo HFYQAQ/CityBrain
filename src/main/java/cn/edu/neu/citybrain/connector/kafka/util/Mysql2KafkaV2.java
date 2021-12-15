@@ -15,7 +15,7 @@ import java.util.Properties;
 public class Mysql2KafkaV2 {
     private static final String SPEED_RT_SOURCE = "select rid, travel_time, speed, reliability_code, step_index, WEEKDAY(dt) as day_of_week, UNIX_TIMESTAMP(dt) as timestamp from %s where step_index=?;";
 
-    private static void loadDataFromSpeedRT(String servers, String tableName, int from, int to) {
+    private static void loadDataFromSpeedRT(String servers, String tableName, String topic, int from, int to) {
         Properties properties = new Properties();
         properties.put("bootstrap.servers", servers);
         properties.put("acks", "all");
@@ -44,7 +44,7 @@ public class Mysql2KafkaV2 {
                     row.setField(4, stepIndex);
                     row.setField(5, resultSet.getInt("day_of_week"));
                     row.setField(6, resultSet.getLong("timestamp") * 1000 + (long) stepIndex * 60 * 1000);
-                    producer.send(new ProducerRecord<>(Constants.TOPIC_DWS_TFC_STATE_RID_TP_LASTSPEED_RT, row.toString()));
+                    producer.send(new ProducerRecord<>(topic, row.toString()));
 
                     cnt++;
                 }
@@ -69,20 +69,23 @@ public class Mysql2KafkaV2 {
                             "\t%-20s%s\n" +
                             "\t%-20s%s\n" +
                             "\t%-20s%s\n" +
+                            "\t%-20s%s\n" +
                             "\t%-20s%s\n",
                     "--servers", "kafka servers to connect, default value is \"kafka-service:9092\".",
                     "--tableName", "table which to load, default value is \"table2\".",
+                    "--topic", "topic which to import, default value is \"mock_speed_rt\".",
                     "--from", "lower for step_index, default value is 0.",
                     "--to", "upper from step_index, default value is 1");
             return;
         }
         String servers = parameterTool.get("servers", "kafka-service:9092");
         String tableName = parameterTool.get("tableName", "table2");
+        String topic = parameterTool.get("topic", "mock_speed_rt");
         int from = parameterTool.get("from") == null ? 0 : Integer.parseInt(parameterTool.get("from"));
         int to = parameterTool.get("to") == null ? 1 : Integer.parseInt(parameterTool.get("to"));
 
         // load
-        loadDataFromSpeedRT(servers, tableName, from, to);
+        loadDataFromSpeedRT(servers, tableName, topic, from, to);
         System.out.println("complete!");
     }
 }
