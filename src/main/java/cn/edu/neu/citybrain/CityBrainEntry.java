@@ -68,8 +68,10 @@ public class CityBrainEntry {
                         "\t%-20s%s\n" +
                         "\t%-20s%s\n" +
                         "\t%-20s%s\n" +
+                        "\t%-20s%s\n" +
                         "\t%-20s%s\n",
                 "--source", source,
+                "--output-topic", outputTopic,
                 "--servers", servers,
                 "--sourceDelay", sourceDelay,
                 "--parallelism", parallelism,
