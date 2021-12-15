@@ -11,12 +11,13 @@ import java.util.List;
 import java.util.Properties;
 
 public class KafkaSinkFunction extends RichSinkFunction<List<RoadMetric>> {
-    private static final String OUT_TOPIC = "inter_metric";
     private String servers;
+    private String topic;
     private Producer<String, String> producer;
 
-    public KafkaSinkFunction(String servers) {
+    public KafkaSinkFunction(String servers, String topic) {
         this.servers = servers;
+        this.topic = topic;
     }
 
     @Override
@@ -37,7 +38,7 @@ public class KafkaSinkFunction extends RichSinkFunction<List<RoadMetric>> {
     @Override
     public void invoke(List<RoadMetric> value, Context context) throws Exception {
         for (RoadMetric roadMetric : value) {
-            producer.send(new ProducerRecord<>(OUT_TOPIC, roadMetric.toString()));
+            producer.send(new ProducerRecord<>(topic, roadMetric.toString()));
         }
     }
 

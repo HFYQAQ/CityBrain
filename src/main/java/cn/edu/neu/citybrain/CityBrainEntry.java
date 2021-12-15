@@ -32,8 +32,10 @@ public class CityBrainEntry {
                             "\t%-20s%s\n" +
                             "\t%-20s%s\n" +
                             "\t%-20s%s\n" +
+                            "\t%-20s%s\n" +
                             "\t%-20s%s\n",
                     "--source", "kafka or mysql, mysql source is used to debug, default value is kafka",
+                    "--output-topic", "kafka topic which to restore results, default value is \"inter_metric\".",
                     "--servers", "kafka servers to connect, must be specified explicitly for kafka source, default value is \"" + Constants.ASTERIA_KAFKA_SERVER + "\".",
                     "--sourceDelay", "source delay for stream source, default value is \"" + ConstantUtil.SOURCE_DELAY + "\"(ms).",
                     "--parallelism", "parallelism, default value is 1.",
@@ -44,6 +46,10 @@ public class CityBrainEntry {
         String source = parameterTool.get("source") == null ?
                 "kafka" :
                 parameterTool.get("source");
+        // source
+        String outputTopic = parameterTool.get("output-topic") == null ?
+                "inter_metric" :
+                parameterTool.get("output-topic");
         // servers
         String servers = parameterTool.get("servers") == null ?
                 Constants.ASTERIA_KAFKA_SERVER :
@@ -62,8 +68,10 @@ public class CityBrainEntry {
                         "\t%-20s%s\n" +
                         "\t%-20s%s\n" +
                         "\t%-20s%s\n" +
+                        "\t%-20s%s\n" +
                         "\t%-20s%s\n",
                 "--source", source,
+                "--output-topic", outputTopic,
                 "--servers", servers,
                 "--sourceDelay", sourceDelay,
                 "--parallelism", parallelism,
@@ -109,7 +117,7 @@ public class CityBrainEntry {
                 .window(TumblingEventTimeWindows.of(Time.minutes(1)))
                 .process(new SingleIntersectionAnalysisFunction());
 //        singleIntersectionAnalysisResult.writeAsText("/opt/flink/citybrain.out", OVERWRITE);
-        singleIntersectionAnalysisResult.addSink(new KafkaSinkFunction(servers)).setParallelism(1);
+        singleIntersectionAnalysisResult.addSink(new KafkaSinkFunction(servers, outputTopic)).setParallelism(1);
 //        singleIntersectionAnalysisResult.addSink(new MySQLSinkFunction()).setParallelism(1);
 //        singleIntersectionAnalysisResult.addSink(new MetricSinkFunction()).setParallelism(1);
 
