@@ -349,10 +349,13 @@ nohup python ./data_generate.py &
   [cn.edu.neu.citybrain.connector.kafka.util.Mysql2KafkaV2](../src/main/java/cn/edu/neu/citybrain/connector/kafka/util/Mysql2KafkaV2.java)支持按时间片范围（闭区间）把数据从MySQL导入到kafka，CityBrain-flink.jar可以通过编译**flink分支**（其它分支可能功能不完善）下的本项目获得（可能需要到[cn.edu.neu.citybrain.db.DBConstants](../src/main/java/cn/edu/neu/citybrain/db/DBConstants.java)中修改MySQL连接信息）。
   
   可以先通过如下命令查看相关参数说明：
+
   ```shell
   java -cp CityBrain-flink.jar cn.edu.neu.citybrain.connector.kafka.util.Mysql2KafkaV2 --h
   ```
+  
   确定参数后用以下命令挂起执行（命令行参数自行适配）。
+
   ```shell
   nohup java -cp CityBrain-flink.jar cn.edu.neu.citybrain.connector.kafka.util.Mysql2KafkaV2 --servers kafka-service:9092 --tableName mock_speed_rt --topic mock_speed_rt --from 0 --to 1439 &
   ```
