@@ -34,6 +34,7 @@ public class CityBrainEntry {
                             "\t%-20s%s\n" +
                             "\t%-20s%s\n" +
                             "\t%-20s%s\n" +
+                            "\t%-20s%s\n" +
                             "\t%-20s%s\n",
                     "--source", "kafka or mysql, mysql source is used to debug, default value is kafka",
                     "--input-topic", "kafka topic which to read, default value is \"mock_speed_rt\".",
@@ -41,7 +42,8 @@ public class CityBrainEntry {
                     "--servers", "kafka servers to connect, must be specified explicitly for kafka source, default value is \"" + Constants.ASTERIA_KAFKA_SERVER + "\".",
                     "--sourceDelay", "source delay for stream source, default value is \"" + ConstantUtil.SOURCE_DELAY + "\"(ms).",
                     "--parallelism", "parallelism, default value is 1.",
-                    "--maxParallelism", "maxParallelism, default value is same with parallelism.");
+                    "--maxParallelism", "maxParallelism, default value is same with parallelism.",
+                    "--isExhibition", "whether exhibit performance, default value is false");
             return;
         }
         // source
@@ -68,6 +70,8 @@ public class CityBrainEntry {
         int parallelism = parameterTool.get("parallelism") == null ? 1 : Integer.parseInt(parameterTool.get("parallelism"));
         // maxParallelism
         int maxParallelism = parameterTool.get("maxParallelism") == null ? parallelism : Integer.parseInt(parameterTool.get("maxParallelism"));
+        // isExhibition
+        boolean isExhibition = 
 
         System.out.printf("bootstrap parameters:\n" +
                         "\t%-20s%s\n" +
