@@ -339,6 +339,11 @@ nohup python ./data_generate.py &
 **注意：已经把脚本中的数据库连接信息（host: master61, user: root, password: root）、生成数据片范围（一整天24小时，共1440个时间片）和表名（mock_speed_rt）按照北理服务器适配好。**
 
 #### 1.1.6 把mock的数据导入kafka
++ 后面往Kafka里导入的时候是按时间片从MySQL里查的，所以需要对MySQL里的mock_speed_rt表建个索引，不然查的会很慢：
+  ```shell
+  create index idx_stepIndex on mock_speed_rt(step_index);
+  ```
+
 + 为mock的数据流创建topic（以下命令为示例，相关服务信息需根据具体环境适配）
   ```shell
   kafka-topics.sh --zookeeper zookeeper-service:2181 --create --replication-factor 1 --partitions 1 --topic mock_speed_rt
