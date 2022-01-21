@@ -313,11 +313,71 @@ create database city_brain;
 
     **注意：插入不同的表时需要注意以上红框四个地方：1、csv文件路径；2、表名；3、换行符（由于历史原因，两张大表换行符是'\n'，其它小表均为'\r\n'）；4、列属性。**
 
-    再以大表”dws_tfc_state_rid_tpwkd_index_m“为例，执行：
+    下面补充了其它表的导入语句：
 
-    ```sql
-    load data local infile '/home/omnisky/citybrain_data/dws_tfc_state_rid_tpwkd_index_m.csv' into table dws_tfc_state_rid_tpwkd_index_m fields terminated by ',' optionally enclosed by '"' lines terminated by '\n' ignore 1 lines(id,stat_month,rid,day_of_week,step_index,avg_speed_1m,avg_nostop_speed_1m,avg_travel_time_1m,avg_nostop_travel_time_1m,med_speed_1m,med_nostop_speed_1m,med_travel_time_1m,med_nostop_travel_time_1m,avg_speed_3m,avg_nostop_speed_3m,avg_travel_time_3m,avg_nostop_travel_time_3m,med_speed_3m,med_nostop_speed_3m,med_travel_time_3m,med_nostop_travel_time_3m,month,tp,data_version,adcode);
-    ```
+    + dwd_tfc_bas_rdnet_rid_info
+    
+      ```sql
+      load data local infile '/home/omnisky/citybrain/data/dwd_tfc_bas_rdnet_rid_info.csv' into table dwd_tfc_bas_rdnet_rid_info fields terminated by ',' optionally enclosed by '"' lines terminated by '\r\n' ignore 1 lines(rid,name,len,betw_inter_len,width,max_speed,min_speed,angle,dir_4_no,dir_8_no,road_level,rid_type_no,pass_type_no,overlap,median,walkway,fork,lane_cnt,p_rid,droad_id,start_cross_id,start_cross_type,start_lng,start_lat,start_geohash,end_cross_id,end_cross_type,end_lng,end_lat,end_geohash,lnglat_seq,p_start_inter,p_end_inter,openlr_info,rid_func_no,lane_cnt_start,lane_cnt_end,data_version,adcode);
+      ```
+    
+      
+    
+    + dwd_tfc_ctl_intersignal_oper_rt
+    
+      ```sql
+      load data local infile '/home/omnisky/citybrain/data/dwd_tfc_ctl_intersignal_oper_rt.csv' into table dwd_tfc_ctl_intersignal_oper_rt fields terminated by ',' optionally enclosed by '"' lines terminated by '\r\n' ignore 1 lines(id,inter_id,inter_name,cycle_start_time,start_time,end_time,phase_plan_id,time_plan_id,phase_name,split_time,cycle_time,green_time,source,dt,data_version,adcode);
+      ```
+    
+      
+    
+    + dwd_tfc_ctl_signal_phasedir
+    
+      ```sql
+      load data local infile '/home/omnisky/citybrain/data/dwd_tfc_ctl_signal_phasedir.csv' into table dwd_tfc_ctl_signal_phasedir fields terminated by ',' optionally enclosed by '"' lines terminated by '\r\n' ignore 1 lines(id,inter_id,inter_name,phase_plan_id,phase_name,dir_name,f_rid,t_rid,f_dir_4_no,f_dir_8_no,turn_dir_no,modified_date,source,start_date,data_version,adcode);
+      ```
+    
+      
+    
+    + dwd_tfc_rltn_wide_inter_lane
+    
+      ```sql
+      load data local infile '/home/omnisky/citybrain/data/dwd_tfc_rltn_wide_inter_lane.csv' into table dwd_tfc_rltn_wide_inter_lane fields terminated by ',' optionally enclosed by '"' lines terminated by '\r\n' ignore 1 lines(inter_id,inter_name,lane_id,lane_no,turn_dir_no_list,lane_angle,ft_type_no,rid,rid_angle,rid_dir_4_no,rid_dir_8_no,ft_dir_4_no,ft_dir_8_no,lane_sdtype_no,lane_hdtype_no,data_version,adcode);
+      ```
+    
+      
+    
+    + dws_tfc_state_rid_tpwkd_index_m
+    
+      ```sql
+      load data local infile '/home/omnisky/citybrain_data/dws_tfc_state_rid_tpwkd_index_m.csv' into table dws_tfc_state_rid_tpwkd_index_m fields terminated by ',' optionally enclosed by '"' lines terminated by '\n' ignore 1 lines(id,stat_month,rid,day_of_week,step_index,avg_speed_1m,avg_nostop_speed_1m,avg_travel_time_1m,avg_nostop_travel_time_1m,med_speed_1m,med_nostop_speed_1m,med_travel_time_1m,med_nostop_travel_time_1m,avg_speed_3m,avg_nostop_speed_3m,avg_travel_time_3m,avg_nostop_travel_time_3m,med_speed_3m,med_nostop_speed_3m,med_travel_time_3m,med_nostop_travel_time_3m,month,tp,data_version,adcode);
+      ```
+    
+    
+    
+    + dws_tfc_state_signinterfridseq_nd_index_m
+    
+      ```sql
+      load data local infile '/home/omnisky/citybrain/data/dws_tfc_state_signinterfridseq_nd_index_m.csv' into table dws_tfc_state_signinterfridseq_nd_index_m fields terminated by ',' optionally enclosed by '"' lines terminated by '\r\n' ignore 1 lines(id,stat_month,inter_id,inter_name,f_ridseq,f_ridseq_len,f_rid,rid_angle,rid_dir_4_no,rid_dir_8_no,f_angle,f_dir_4_no,f_dir_8_no,turn_dir_no,benchmark_nostop_travel_time_3m,benchmark_travel_time_3m,benchmark_nostop_speed_3m,benchmark_speed_3m,free_nostop_speed_3m,free_speed_3m,month,data_version,adcode);
+      ```
+    
+      
+    
+    + dws_tfc_state_signinterfridseq_tpwkd_delaydur_m
+    
+      ```sql
+      load data local infile '/home/omnisky/citybrain/data/dws_tfc_state_signinterfridseq_tpwkd_delaydur_m.csv' into table dws_tfc_state_signinterfridseq_tpwkd_delaydur_m fields terminated by ',' optionally enclosed by '"' lines terminated by '\n' ignore 1 lines(id,stat_month,inter_id,inter_name,f_ridseq,f_rid,f_dir_4_no,f_dir_8_no,turn_dir_no,day_of_week,step_index,avg_speed_3m,avg_nostop_speed_3m,avg_speed_travel_time_3m,avg_speed_nostop_travel_time_3m,avg_trace_travel_time_3m,avg_delay_dur_3m,month,tp,data_version,adcode);
+      ```
+    
+      
+    
+    + dws_tfc_trl_interfridlane_tp_smtmultiflow_rt
+    
+      ```sql
+      load data local infile '/home/omnisky/citybrain/data/dws_tfc_trl_interfridlane_tp_smtmultiflow_rt.csv' into table dws_tfc_trl_interfridlane_tp_smtmultiflow_rt fields terminated by ',' optionally enclosed by '"' lines terminated by '\r\n' ignore 1 lines(id,stat_time,reliable_devc_id,reliable_devc_type_no,lane_id,rid,inter_id,step_index,flow,reliability_code,multi_type,dt,tp,data_version,adcode);
+      ```
+    
+      
 #### 1.1.5 为大表建索引
 两张大表查询速度特别慢，所以需要针对flink作业需求建立相关索引。
 + dws_tfc_state_rid_tpwkd_index_m
