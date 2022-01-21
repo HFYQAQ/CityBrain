@@ -365,9 +365,11 @@ nohup python ./data_generate.py &
   nohup java -cp CityBrain-flink.jar cn.edu.neu.citybrain.connector.kafka.util.Mysql2KafkaV2 --servers kafka-service:9092 --tableName mock_speed_rt --topic mock_speed_rt --from 0 --to 1439 &
   ```
   
+  当前目录会生成nohup.out文件，里面有导入的进度。
+  
 + 验证
-
-  导入执行的时候最好消费kafka topic验证一下。
+  
+  导入执行的时候可以消费kafka topic验证一下。
 
   ```shell
   kafka-console-consumer.sh --bootstrap-server kafka-service:9092 --topic mock_speed_rt --from-beginning
