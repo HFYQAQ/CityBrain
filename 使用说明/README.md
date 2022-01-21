@@ -339,5 +339,16 @@ nohup python ./data_generate.py &
 **注意：已经把脚本中的数据库连接信息（host: master61, user: root, password: root）、生成数据片范围（一整天24小时，共1440个时间片）和表名（mock_speed_rt）按照北理服务器适配好。**
 
 #### 1.1.6 把mock的数据导入kafka
++ 为mock的数据流创建topic（以下命令为示例，相关服务信息需根据具体环境适配）
+  ```shell
+  kafka-topics.sh --zookeeper zookeeper-service:2181 --create --replication-factor 1 --partitions 1 --topic mock_speed_rt
+  ```
+  
++ 把前面mock的数据表从MySQL导入到kafka
 
+  以下命令会按时间片范围（闭区间）把数据从MySQL导入到kafka，CityBrain-flink.jar可以通过编译flink分支下的本项目获得（可能需要到[cn.edu.neu.citybrain.db.DBConstants](../src/main/java/cn/edu/neu/citybrain/db/DBConstants.java)中修改MySQL连接信息）。
+  
+  ```shell
+  java -cp CityBrain-flink.jar cn.edu.neu.citybrain.connector.kafka.util.Mysql2KafkaV2 --from 0 --to 1439
+  ```
 ### 1.2 Kafka

@@ -2,7 +2,7 @@ package cn.edu.neu.citybrain.db;
 
 public class DBConstants {
     public static final String MYSQL_DRIVER = "com.mysql.cj.jdbc.Driver";
-    public static final String REMOTE_IP_PORT = "mysql:3306";
+    public static final String REMOTE_IP_PORT = "mysql-svc:3306";
     public static final String JDBC_URL = "jdbc:mysql://" + REMOTE_IP_PORT + "/city_brain?characterEncoding=UTF-8&useSSL=false&serverTimezone=Hongkong&rewriteBatchedStatements=true&allowPublicKeyRetrieval=true";
     public static final String JDBC_USER = "root";
     public static final String JDBC_PWD = "123456";
