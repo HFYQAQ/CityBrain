@@ -318,8 +318,17 @@ create database city_brain;
     ```sql
     load data local infile '/home/omnisky/citybrain_data/dws_tfc_state_rid_tpwkd_index_m.csv' into table dws_tfc_state_rid_tpwkd_index_m fields terminated by ',' optionally enclosed by '"' lines terminated by '\n' ignore 1 lines(id,stat_month,rid,day_of_week,step_index,avg_speed_1m,avg_nostop_speed_1m,avg_travel_time_1m,avg_nostop_travel_time_1m,med_speed_1m,med_nostop_speed_1m,med_travel_time_1m,med_nostop_travel_time_1m,avg_speed_3m,avg_nostop_speed_3m,avg_travel_time_3m,avg_nostop_travel_time_3m,med_speed_3m,med_nostop_speed_3m,med_travel_time_3m,med_nostop_travel_time_3m,month,tp,data_version,adcode);
     ```
-
-#### 1.1.5 mock流数据
+#### 1.1.5 为大表建索引
+两张大表查询速度特别慢，所以需要针对flink作业需求建立相关索引。
++ dws_tfc_state_rid_tpwkd_index_m
+  ```sql
+  create index idx_day_step_tp_rid_att3m on dws_tfc_state_rid_tpwkd_index_m(day_of_week, step_index, tp, rid, avg_travel_time_3m);
+  ```
++ dws_tfc_state_signinterfridseq_tpwkd_delaydur_m
+  ```sql
+  create index idx_day_step_tp_inter_frid_turn_attt3m on dws_tfc_state_signinterfridseq_tpwkd_delaydur_m(day_of_week, step_index, tp, inter_id, f_rid, turn_dir_no, avg_trace_travel_time_3m);
+  ```
+#### 1.1.6 mock流数据
 
 执行脚本[data_generate.py](./script/data_generate.py)，已经上传到了北理服务器”/home/omnisky/citybrain/script“目录下，因为ssh连接不稳定，为防止中断，最好用以下方式挂起执行：
 
@@ -330,7 +339,5 @@ nohup python ./data_generate.py &
 **注意：已经把脚本中的数据库连接信息（host: master61, user: root, password: root）、生成数据片范围（一整天24小时，共1440个时间片）和表名（mock_speed_rt）按照北理服务器适配好。**
 
 #### 1.1.6 把mock的数据导入kafka
-
-
 
 ### 1.2 Kafka
