@@ -31,6 +31,7 @@ import static cn.edu.neu.citybrain.db.DBConstants.*;
 
 public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Row, List<RoadMetric>, Tuple, TimeWindow> {
     private ExecutorService executorService;
+    private boolean isExhibition;
 
     // base table
     Map<String, RidInfo> ridInfoMap = new HashMap<>();
@@ -46,6 +47,10 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
     private final String METRIC_SQL = "insert into statistic(job_name,subtask_index,dt,step_index_1mi,amount,duration) values(?,?,?,?,?,?)";
     private Connection metricConnection;
     private PreparedStatement metricPS;
+
+    public SingleIntersectionAnalysisFunction(boolean isExhibition) {
+        this.isExhibition = isExhibition;
+    }
 
     @Override
     public void open(Configuration parameters) throws Exception {
@@ -184,7 +189,7 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
         long duration = afterProcess - beforeProcess;
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
         String dt = sdf.format(new Date(timestamp));
-        upload(taskIdx, dt, stepIndex1mi, amount, duration);
+        upload(taskIdx, dt, stepIndex1mi, amount, duration, isExhibition);
 
         // metric
 //        long duration = afterProcess - beforeProcess;
@@ -213,7 +218,7 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
         }
     }
 
-    private void upload(int taskIdx, String dt, Long stepIndex1mi, long amount, long duration) throws Exception {
+    private void upload(int taskIdx, String dt, Long stepIndex1mi, long amount, long duration, boolean isExhibition) throws Exception {
         metricPS.clearParameters();
         ParameterTool parameterTool = (ParameterTool) getRuntimeContext().getExecutionConfig().getGlobalJobParameters();
         String jobName = parameterTool.get("jobName");
@@ -223,6 +228,7 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
         metricPS.setObject(4, stepIndex1mi);
         metricPS.setObject(5, amount);
         metricPS.setObject(6, duration);
+        metricPS.setObject(7, isExhibition ? 1 : 0);
         metricPS.executeUpdate();
     }
 
