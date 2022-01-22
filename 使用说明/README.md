@@ -1,14 +1,14 @@
 [toc]
 
-## 1. 数据准备
+# 1. 数据准备
 
-### 1.1 MySQL
+## 1.1 MySQL
 
-#### 1.1.1 基础表名
+### 1.1.1 基础表名
 
 ![](./img/base_table.png)
 
-#### 1.1.2 建库
+### 1.1.2 建库
 
 库名：city_brain
 
@@ -16,9 +16,11 @@
 create database city_brain;
 ```
 
-#### 1.1.3 建表
+### 1.1.3 建表
 
-以上数据表的建表语句在[city_brain.sql](./table/city_brain.sql)中，下面直接摘出来了，如果有错误，可以到原文件中查。
+#### 1.1.3.1 业务计算相关的表
+
+建表语句在[city_brain.sql](./table/city_brain.sql)中，下面直接摘出来了，如果有错误，可以到原文件中查。
 
 + dwd_tfc_bas_rdnet_rid_info
 
@@ -289,7 +291,53 @@ create database city_brain;
   ) ENGINE = InnoDB AUTO_INCREMENT = 884620 CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '路口·进口道车道粒度融合后流量平滑结果-时间片-实时更新' ROW_FORMAT = Dynamic;
   ```
 
-#### 1.1.4 导入数据到MySQL
+
+
+#### 1.1.3.2 性能指标相关的表
+
+作业运行的时候，性能指标是收集到MySQL里的，所以要提前建好：
+
++ statistic
+
+  ```sql
+  create table statistic(
+  	id bigint not null auto_increment,
+  	job_name varchar(64) character set utf8 collate utf8_general_ci not null,
+  	subtask_index int not null,
+  	dt varchar(10) character set utf8 collate utf8_general_ci not null,
+  	step_index_1mi int not null,
+  	amount bigint not null,
+  	duration bigint not null,
+  	is_exhibition int not null,
+  	primary key(id)
+  );
+  ```
+
+#### 1.1.3.3 路口指标相关的表
+
+这个只是用来支持前端展示的，把计算出来的路口指标展示到前端界面上，如果只是做性能测试的话不需要这个，和flink作业不耦合（没这张表也能跑）。
+
++ inter_metric_v2
+
+  ```sql
+  create table inter_metric(
+  	id bigint not null auto_increment,
+  	inter_id varchar(64) character set utf8 collate utf8_general_ci not null,
+  	inter_name varchar(128) character set utf8 collate utf8_general_ci not null,
+  	rid varchar(64) character set utf8 collate utf8_general_ci not null,
+  	r_name varchar(128) character set utf8 collate utf8_general_ci not null,
+  	turn_dir_no int not null,
+  	travel_time double not null default 0,
+  	delay double not null default 0,
+  	stop_cnt double not null default 0,
+  	queue double not null default 0,
+  	primary key(id)
+  );
+  ```
+
+  
+
+### 1.1.4 导入数据到MySQL
 
 + 数据文件
 
@@ -378,7 +426,8 @@ create database city_brain;
       ```
     
       
-#### 1.1.5 为大表建索引
+### 1.1.5 为大表建索引
+
 两张大表查询速度特别慢，所以需要针对flink作业需求建立相关索引。
 + dws_tfc_state_rid_tpwkd_index_m
   ```sql
@@ -388,7 +437,7 @@ create database city_brain;
   ```sql
   create index idx_day_step_tp_inter_frid_turn_attt3m on dws_tfc_state_signinterfridseq_tpwkd_delaydur_m(day_of_week, step_index, tp, inter_id, f_rid, turn_dir_no, avg_trace_travel_time_3m);
   ```
-#### 1.1.6 mock流数据
+### 1.1.6 mock流数据
 
 执行脚本[data_generate.py](./script/data_generate.py)，已经上传到了北理服务器”/home/omnisky/citybrain/script“目录下，因为ssh连接不稳定，为防止中断，最好用以下方式挂起执行：
 
@@ -398,37 +447,44 @@ nohup python ./data_generate.py &
 
 **注意：已经把脚本中的数据库连接信息（host: master61, user: root, password: root）、生成数据片范围（一整天24小时，共1440个时间片）和表名（mock_speed_rt）按照北理服务器适配好。**
 
-#### 1.1.6 把mock的数据导入kafka
+## 1.2 Kafka
+
+### 1.2.1 把mock的数据导入kafka
+
 + 后面往Kafka里导入的时候是按时间片从MySQL里查的，所以需要对MySQL里的mock_speed_rt表建个索引，不然查的会很慢：
+
   ```shell
   create index idx_stepIndex on mock_speed_rt(step_index);
   ```
 
 + 为mock的数据流创建topic（以下命令为示例，相关服务信息需根据具体环境适配）
+
   ```shell
   kafka-topics.sh --zookeeper zookeeper-service:2181 --create --replication-factor 1 --partitions 1 --topic mock_speed_rt
   ```
-  
+
 + 把前面mock的数据表从MySQL导入到kafka
 
   [cn.edu.neu.citybrain.connector.kafka.util.Mysql2KafkaV2](../src/main/java/cn/edu/neu/citybrain/connector/kafka/util/Mysql2KafkaV2.java)支持按时间片范围（闭区间）把数据从MySQL导入到kafka，CityBrain-flink.jar可以通过编译**flink分支**（其它分支可能功能不完善）下的本项目获得（可能需要到[cn.edu.neu.citybrain.db.DBConstants](../src/main/java/cn/edu/neu/citybrain/db/DBConstants.java)中修改MySQL连接信息）。
-  
+
   可以先通过如下命令查看相关参数说明：
 
   ```shell
   java -cp CityBrain-flink.jar cn.edu.neu.citybrain.connector.kafka.util.Mysql2KafkaV2 --h
   ```
-  
+
   确定参数后用以下命令挂起执行（命令行参数自行适配）。
 
   ```shell
   nohup java -cp CityBrain-flink.jar cn.edu.neu.citybrain.connector.kafka.util.Mysql2KafkaV2 --servers kafka-service:9092 --tableName mock_speed_rt --topic mock_speed_rt --from 0 --to 1439 &
   ```
-  
-  当前目录会生成nohup.out文件，里面有导入的进度。
-  
+
+  当前目录会生成nohup.out文件，里面有导入的进度：
+
+  ![](./img/progress.png)
+
 + 验证
-  
+
   导入执行的时候可以消费kafka topic验证一下。
 
   ```shell
@@ -437,4 +493,108 @@ nohup python ./data_generate.py &
 
   
 
-### 1.2 Kafka
+# 2. 测试
+
+## 2.1 测之前最好先了解一下的内容
+
+项目下有几个分支，目前保持最新版本的分支（用来测试）有：flink、flink-cache。为了对运行过程有个心理预期，先简单介绍一下两个分支的区别：
+
++ flink分支。用来测试flink1.4.2、flink1.8.0、flink1.12.2等系统。实现方式是小表全部缓存，两张大表即时查询数据库，所以不会占用很大内存；
++ flink-cache分支。用来测试gaia系统，这个分支没有使用xjoin算子，而是采用缓存的方式模拟xjoin，测试结果可以作为gaia的性能数据。**注意：这个分支的实现会占用很大的内存，因为每个子任务都会缓存两张大表的相同数据副本，比如作业并行度为3，内存中就会存在相同的3份大表数据，所以运行的时候不能设置太大并行度。小表影响不大，主要是那两张大表，为了尽量降低影响，缓存大表的时候没有把整张表都加载，而是每次只加载一天的数据量（大表的内容是7天的历史数据），需要计算下一天的数据时，再重新加载。**
+
+## 2.2 jar包准备
+
+需要两个jar包：
+
++ 编译flink分支；
++ 编译flink-cache分支。
+
+为了避免混淆，jar包名可以做些区别：CityBrain-flink.jar和CityBrain-flink-cache.jar。
+
+## 2.3 现可用集群
+
+/home/omnisky/hfy/workspace（我这次测试用的）
+
+或者
+
+/home/omnisky/gaia-test
+
+## 2.4 运行
+
+### 2.4.1 flink
+
++ 参考
+
+  我在北理测的时候用的配置：
+
+  ```yaml
+  # 1.4.2
+  taskmanager.heap.mb: 71680
+  taskmanager.numberOfTaskSlots: 1
+  
+  # 1.8.0
+  taskmanager.heap.size: 71680m
+  taskmanager.numberOfTaskSlots: 1
+  
+  # 1.12.2
+  taskmanager.memory.process.size: 71680m
+  taskmanager.numberOfTaskSlots: 1
+  ```
+
++ 提交作业
+
+  1.4.2、1.8.0、1.12.2都一样
+
+  ```shell
+  # --output-topic 计算结果会输出到kafka topic，不重要
+  # --servers kafka服务
+  # --parallelism 作业并行度
+  # （下面两个参数不用设置，是用来支持前端页面展示的，单纯测系统性能的话不要写）
+  # --flinkVersion flink版本，用来支持前端页面展示的，会作为字符串拼接到作业名中，用作数据库查询标志，1.4.2是142，1.8.0是180，1.12.2是1122
+  # --isExhibition 也是用来支持前端页面展示的，不需要展示时千万不要设置成true，会影响前端查询结果，默认为false（可以不用写）。
+  ./flink run -c cn.edu.neu.citybrain.CityBrainEntry /home/omnisky/citybrain/jar/CityBrain-flink.jar --output-topic inter_metric --servers master61:9092 --parallelism 5
+  ```
+
++ 性能指标查询
+
+  运行的时候会把统计出来的性能指标插入到statistic数据表。
+
+  每次提交作业都会根据当前时间戳生成作业名，从webui把这个名字复制下来作为参数可以解析本次运行的性能，包括吞吐量和时延：
+
+  ```shell
+  # --jobName webui上显示的作业名
+  java -cp CityBrain-flink.jar cn.edu.neu.citybrain.metric.analysis.MetricAnalysis --jobName CityBrainJob-1642845555884
+  ```
+
+### 2.4.2 gaia
+
++ 参考
+
+  北理服务器几台slave可用内存大概在60G左右，参考上面介绍的flink-cache分支的实现方式，实测发现：如果单台slave跑3个子任务，内存比较吃力，taskmanager可能会崩，1个或2个子任务应该没问题。
+
+  也就是说，如果用1台slave测，可以跑1到2并行度；如果用5台slave测，可以跑5到10个并行度。
+
+  我在北理测的时候用的配置：
+
+  ```yaml
+  taskmanager.heap.size: 71680m
+  taskmanager.numberOfTaskSlots: 1
+  ```
+
++ 提交作业
+
+  ```shell
+  # 注意jar包不同，其它和flink基本一致
+  ./flink run -c cn.edu.neu.citybrain.CityBrainEntry /home/omnisky/citybrain/jar/CityBrain-flink-cache.jar --output-topic inter_metric --servers master61:9092 --parallelism 5
+  ```
+
++ 性能指标查询
+
+  ```shell
+  # 同flink
+  java -cp CityBrain-flink.jar cn.edu.neu.citybrain.metric.analysis.MetricAnalysis --jobName CityBrainJobWithCache-1642845555884
+  ```
+
+  
+
+# 3. 前端展示相关
