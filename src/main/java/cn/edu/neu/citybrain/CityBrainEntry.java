@@ -43,6 +43,7 @@ public class CityBrainEntry {
                     "--sourceDelay", "source delay for stream source, default value is \"" + ConstantUtil.SOURCE_DELAY + "\"(ms).",
                     "--parallelism", "parallelism, default value is 1.",
                     "--maxParallelism", "maxParallelism, default value is same with parallelism.",
+                    "--flinkVersion", "flink version which is used to define job name, default value is \"\".",
                     "--isExhibition", "whether exhibit performance, default value is false");
             return;
         }
@@ -70,10 +71,13 @@ public class CityBrainEntry {
         int parallelism = parameterTool.get("parallelism") == null ? 1 : Integer.parseInt(parameterTool.get("parallelism"));
         // maxParallelism
         int maxParallelism = parameterTool.get("maxParallelism") == null ? parallelism : Integer.parseInt(parameterTool.get("maxParallelism"));
+        // flinkVersion
+        String flinkVersion = parameterTool.get("flinkVersion") == null ? "" : parameterTool.get("flinkVersion");
         // isExhibition
         boolean isExhibition = parameterTool.get("isExhibition") != null && (parameterTool.get("isExhibition").equals("true"));
 
         System.out.printf("bootstrap parameters:\n" +
+                        "\t%-20s%s\n" +
                         "\t%-20s%s\n" +
                         "\t%-20s%s\n" +
                         "\t%-20s%s\n" +
@@ -89,6 +93,7 @@ public class CityBrainEntry {
                 "--sourceDelay", sourceDelay,
                 "--parallelism", parallelism,
                 "--maxParallelism", maxParallelism,
+                "--flinkVersion", flinkVersion,
                 "--isExhibition", isExhibition);
 
         // environment
@@ -97,7 +102,7 @@ public class CityBrainEntry {
                 .setMaxParallelism(maxParallelism);
         env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
         env.getConfig().setAutoWatermarkInterval(1000);
-        ParameterTool globalParams = ParameterTool.fromArgs(new String[] {"--jobName", ConstantUtil.JOB_NAME});
+        ParameterTool globalParams = ParameterTool.fromArgs(new String[] {"--jobName", ConstantUtil.JOB_NAME_PREFIX + flinkVersion + "-" + System.currentTimeMillis()});
         env.getConfig().setGlobalJobParameters(globalParams);
 
         // source
