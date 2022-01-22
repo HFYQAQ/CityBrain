@@ -102,7 +102,8 @@ public class CityBrainEntry {
                 .setMaxParallelism(maxParallelism);
         env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
         env.getConfig().setAutoWatermarkInterval(1000);
-        ParameterTool globalParams = ParameterTool.fromArgs(new String[] {"--jobName", ConstantUtil.JOB_NAME_PREFIX + flinkVersion + "-" + System.currentTimeMillis()});
+        String jobName = ConstantUtil.JOB_NAME_PREFIX + flinkVersion + "-" + System.currentTimeMillis();
+        ParameterTool globalParams = ParameterTool.fromArgs(new String[] {"--jobName", jobName});
         env.getConfig().setGlobalJobParameters(globalParams);
 
         // source
@@ -140,6 +141,6 @@ public class CityBrainEntry {
 //        singleIntersectionAnalysisResult.addSink(new MySQLSinkFunction()).setParallelism(1);
 //        singleIntersectionAnalysisResult.addSink(new MetricSinkFunction()).setParallelism(1);
 
-        env.execute(ConstantUtil.JOB_NAME);
+        env.execute(jobName);
     }
 }
