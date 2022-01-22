@@ -38,7 +38,7 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
     Map<String, PhaseInfo> phaseInfoMap = new HashMap<>();
 
     // metric
-    private final String METRIC_SQL = "insert into statistic(job_name,subtask_index,dt,step_index_1mi,amount,duration,type) values(?,?,?,?,?,?,?)";
+    private final String METRIC_SQL = "insert into statistic(job_name,subtask_index,dt,step_index_1mi,amount,duration,is_exhibition) values(?,?,?,?,?,?,?)";
     private Connection metricConnection;
     private PreparedStatement metricPS;
 
