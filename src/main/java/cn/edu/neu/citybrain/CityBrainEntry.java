@@ -136,8 +136,10 @@ public class CityBrainEntry {
         // ridInfo
         DataMixStream<Row> sourceExpandRidInfo = speedRTSource
                 .xjoinV4(ridInfo)
+                // 指定流数据中的连接键下标
                 .projectStreamTableKey(1)
                 .projectStreamTableField(0, 1, 2, 3, 4, 5, 6, 7, 8)
+                // 指定批数据中的连接键下标
                 .ProjectSideTableKey(0)
                 .projectsideTableField(0, 1)
                 .SyncXjoin()
