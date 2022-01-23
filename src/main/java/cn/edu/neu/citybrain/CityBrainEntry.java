@@ -73,31 +73,20 @@ public class CityBrainEntry {
                 "--parallelism", parallelism,
                 "--maxParallelism", maxParallelism);
 
-        // environment
+        // 1、创建同时支持批数据和流数据的执行环境
         final MixStreamExecutionEnvironment env = MixStreamContextEnvironment.getExecutionEnvironment()
                 .setParallelism(parallelism)
                 .setMaxParallelism(maxParallelism);
         env.setMixStreamTimeCharacteristic(TimeCharacteristic.EventTime);
         env.getConfig().setAutoWatermarkInterval(1000);
 
-        // source
-        SourceFunction<Row> sourceFunction = null;
-        switch (source) {
-            case "kafka":
-                sourceFunction = new KafkaSpeedRTSourceFunction(servers, sourceDelay, parallelism, maxParallelism);
-                break;
-            case "mysql":
-                sourceFunction = new SpeedRTSourceFunction(sourceDelay, parallelism, maxParallelism);
-                break;
-            default:
-                sourceFunction = new KafkaSpeedRTSourceFunction(servers, sourceDelay, parallelism, maxParallelism);
-                break;
-        }
+        // 2、通过DataMixStream API创建流数据源
         DataMixStream<Row> speedRTSource = env
-                .addSource(sourceFunction)
+                .addSource(new KafkaSpeedRTSourceFunction(servers, sourceDelay, parallelism, maxParallelism))
                 .name("speedRT")
                 .returns(KafkaSpeedRTSourceFunction.getRowTypeInfo());
 
+        // 3、创建批数据源
         // dwd_tfc_bas_rdnet_rid_info
         RdbSideTableInfo ridInfo = RdbSideTableInfoBuilders.buildMysqlTableInfo()
                 .setUrl(JDBC_URL)
@@ -143,7 +132,7 @@ public class CityBrainEntry {
                 .addfieldInfo("phase_name", "string")
                 .finish();
 
-        // xjoin
+        // 4、使用xjoin算子把流数据源和批数据源做一个连接
         // ridInfo
         DataMixStream<Row> sourceExpandRidInfo = speedRTSource
                 .xjoinV4(ridInfo)
@@ -211,7 +200,7 @@ public class CityBrainEntry {
                 .apply();
 //                .slotSharingGroup("xjoin");
 
-        // watermark
+        // 5、进行业务相关的计算并输出
         DataMixStream<Row> speedRTWithWatermark = sourceExpandRidInfoExpandInterLaneExpandNdIndexExpandPhasedir.assignTimestampsAndWatermarks(new BoundedOutOfOrdernessTimestampExtractor<Row>(Time.seconds(0)) {
             @Override
             public long extractTimestamp(Row row) {
@@ -226,6 +215,7 @@ public class CityBrainEntry {
 //        singleIntersectionAnalysisResult.writeAsText("/opt/flink/citybrain.out", OVERWRITE);
         singleIntersectionAnalysisResult.addSink(new KafkaSinkFunction(servers));
 
+        // 6、提交作业
         env.execute("CityBrainJob");
     }
 }
