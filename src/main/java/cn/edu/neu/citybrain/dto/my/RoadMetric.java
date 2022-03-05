@@ -96,4 +96,8 @@ public class RoadMetric {
         String format = "%s,%s,%s,%s,%s,%s,%s,%s,%s";
         return String.format(format, interId, fRid, turnDirNo, dt, stepIndex1mi, travelTime, delay, stopCnt, queue);
     }
+
+    public static void main(String[] args) {
+        System.out.println(new RoadMetric("154V709G4B0", "154UE09G440154V709G4B00", 1L, "20210327", 0L, 103.71790450626878, 32.51790450626878, 0.27098253755223983, 10.27475454885576));
+    }
 }
