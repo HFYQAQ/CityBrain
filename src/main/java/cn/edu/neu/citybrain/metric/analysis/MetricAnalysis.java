@@ -23,18 +23,24 @@ public class MetricAnalysis {
         ParameterTool parameterTool = ParameterTool.fromArgs(args);
 
         if (parameterTool.has("h")) {
-            System.out.printf("Usage:\n\t%-20s%s\n",
+            System.out.printf("Usage:\n" +
+                            "\t%-20s%s\n",
+                    "\t%-20s%s\n",
+                    "\t%-20s%s\n",
+                    "\t%-20s%s\n",
                     "--jobName", "job name.",
                     "--dt", "date, default value is formatted from postfix of jobName.",
-                    "--stepIndex", "step index.");
+                    "--stepIndex", "step index.",
+                    "--detail", "false");
             return;
         }
         String jobName = parameterTool.get("jobName");
+        boolean detail = parameterTool.get("detail").equals("true");
 
-        new MetricAnalysis().analysis(jobName);
+        new MetricAnalysis().analysis(jobName, detail);
     }
 
-    private void analysis(String jobName) {
+    private void analysis(String jobName, boolean detail) {
         String tag = "statistic";
         String sql = "select job_name as jobName, subtask_index as subtaskIndex, dt, step_index_1mi as stepIndex1mi, amount, duration from statistic where job_name=?";
         DBQuery dbQuery = new DBQuery(executorService);
@@ -89,8 +95,10 @@ public class MetricAnalysis {
             }
         });
 
-        for (Metric metric : metrics) {
-            System.out.println(metric.toString());
+        if (detail) {
+            for (Metric metric : metrics) {
+                System.out.println(metric.toString());
+            }
         }
         double sumThroughput = 0.0;
         double avgThroughput = 0.0;
