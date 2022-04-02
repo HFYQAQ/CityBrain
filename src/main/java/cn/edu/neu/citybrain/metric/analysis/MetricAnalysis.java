@@ -88,9 +88,23 @@ public class MetricAnalysis {
                 return (int) (o1.getStepIndex1mi() - o2.getStepIndex1mi());
             }
         });
+
         for (Metric metric : metrics) {
             System.out.println(metric.toString());
         }
+        double sumThroughput = 0.0;
+        double avgThroughput = 0.0;
+        double sumDelay = 0.0;
+        double avgDelay = 0.0;
+        int cnt = 0;
+        for (int i = metrics.size() - 1; i >= metrics.size() - 10 && i >= 0; i--) {
+            sumThroughput += metrics.get(i).getThroughput();
+            sumDelay += metrics.get(i).getDelay();
+            cnt++;
+        }
+        avgThroughput = sumThroughput / cnt;
+        avgDelay = sumDelay / cnt;
+        System.out.printf("avg throughput: %f\navg delay: %f\n", avgThroughput, avgDelay);
 
         close();
     }
