@@ -26,7 +26,7 @@ public class MetricAnalysis {
             System.out.printf("Usage:\n" +
                             "\t%-20s%s\n" +
                             "\t%-20s%s\n" +
-                            "\t%-20s%s\n" + 
+                            "\t%-20s%s\n" +
                             "\t%-20s%s\n",
                     "--jobName", "job name.",
                     "--dt", "date, default value is formatted from postfix of jobName.",
