@@ -97,7 +97,7 @@ public class MetricAnalysis {
         double sumDelay = 0.0;
         double avgDelay = 0.0;
         int cnt = 0;
-        for (int i = metrics.size() - 1; i >= metrics.size() - 10 && i >= 0; i--) {
+        for (int i = metrics.size() - 1; i >= 0; i--) {
             sumThroughput += metrics.get(i).getThroughput();
             sumDelay += metrics.get(i).getDelay();
             cnt++;
