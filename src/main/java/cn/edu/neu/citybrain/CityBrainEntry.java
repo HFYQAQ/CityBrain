@@ -5,7 +5,6 @@ import cn.edu.neu.citybrain.connector.kafka.util.Constants;
 import cn.edu.neu.citybrain.dto.my.RoadMetric;
 import cn.edu.neu.citybrain.function.SingleIntersectionAnalysisFunction;
 import cn.edu.neu.citybrain.function.sink.KafkaSinkFunction;
-import cn.edu.neu.citybrain.function.sink.MySQLSinkFunction;
 import cn.edu.neu.citybrain.function.source.SpeedRTSourceFunction;
 import cn.edu.neu.citybrain.util.ConstantUtil;
 import org.apache.flink.api.java.utils.ParameterTool;
@@ -28,6 +27,7 @@ public class CityBrainEntry {
         // help
         if (parameterTool.has("h")) {
             System.out.printf("Usage:\n" +
+                            "\t%-20s%s\n" +
                             "\t%-20s%s\n" +
                             "\t%-20s%s\n" +
                             "\t%-20s%s\n" +
