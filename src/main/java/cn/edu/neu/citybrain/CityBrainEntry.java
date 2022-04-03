@@ -35,22 +35,44 @@ public class CityBrainEntry {
                             "\t%-20s%s\n" +
                             "\t%-20s%s\n" +
                             "\t%-20s%s\n" +
+                            "\t%-20s%s\n" +
+                            "\t%-20s%s\n" +
+                            "\t%-20s%s\n" +
+                            "\t%-20s%s\n" +
                             "\t%-20s%s\n",
                     "--source", "kafka or mysql, mysql source is used to debug, default value is kafka",
+                    "--input-topic", "kafka topic which to read, default value is \"mock_speed_rt\".",
+                    "--output-topic", "kafka topic which to restore results, default value is \"inter_metric\".",
                     "--servers", "kafka servers to connect, must be specified explicitly for kafka source, default value is \"" + Constants.ASTERIA_KAFKA_SERVER + "\".",
+                    "--scale", "scale",
                     "--sourceDelay", "source delay for stream source, default value is \"" + ConstantUtil.SOURCE_DELAY + "\"(ms).",
                     "--parallelism", "parallelism, default value is 1.",
-                    "--maxParallelism", "maxParallelism, default value is same with parallelism.");
+                    "--maxParallelism", "maxParallelism, default value is same with parallelism.",
+                    "--isExhibition", "whether exhibit performance, default value is false");
             return;
         }
         // source
         String source = parameterTool.get("source") == null ?
                 "kafka" :
                 parameterTool.get("source");
+        // input-topic
+        String inputTopic = parameterTool.get("input-topic") == null ?
+                "mock_speed_rt" :
+                parameterTool.get("input-topic");
+        // output-topic
+        String outputTopic = parameterTool.get("output-topic") == null ?
+                "inter_metric" :
+                parameterTool.get("output-topic");
         // servers
         String servers = parameterTool.get("servers") == null ?
                 Constants.ASTERIA_KAFKA_SERVER :
                 parameterTool.get("servers");
+        // scale
+        int scale = parameterTool.get("scale") == null ?
+                0 :
+                Integer.parseInt(parameterTool.get("scale"));
+        String table1 = scale == 0 ? dws_tfc_state_rid_tpwkd_index_m : dws_tfc_state_rid_tpwkd_index_m + "_" + scale;
+        String table2 = scale == 0 ? dws_tfc_state_signinterfridseq_tpwkd_delaydur_m : dws_tfc_state_signinterfridseq_tpwkd_delaydur_m + "_" + scale;
         // delay
         long sourceDelay = parameterTool.get("sourceDelay") == null ?
                 ConstantUtil.SOURCE_DELAY :
@@ -59,37 +81,48 @@ public class CityBrainEntry {
         int parallelism = parameterTool.get("parallelism") == null ? 1 : Integer.parseInt(parameterTool.get("parallelism"));
         // maxParallelism
         int maxParallelism = parameterTool.get("maxParallelism") == null ? parallelism : Integer.parseInt(parameterTool.get("maxParallelism"));
+        // isExhibition
+        boolean isExhibition = parameterTool.get("isExhibition") != null && (parameterTool.get("isExhibition").equals("true"));
 
         System.out.printf("bootstrap parameters:\n" +
                         "\t%-20s%s\n" +
                         "\t%-20s%s\n" +
                         "\t%-20s%s\n" +
                         "\t%-20s%s\n" +
+                        "\t%-20s%s\n" +
+                        "\t%-20s%s\n" +
+                        "\t%-20s%s\n" +
                         "\t%-20s%s\n",
                 "--source", source,
+                "--input-topic", inputTopic,
+                "--output-topic", outputTopic,
                 "--servers", servers,
                 "--sourceDelay", sourceDelay,
                 "--parallelism", parallelism,
-                "--maxParallelism", maxParallelism);
+                "--maxParallelism", maxParallelism,
+                "--isExhibition", isExhibition);
 
         // environment
         final MixStreamExecutionEnvironment env = MixStreamContextEnvironment.getExecutionEnvironment()
                 .setParallelism(parallelism)
                 .setMaxParallelism(maxParallelism);
+        env.disableOperatorChaining();
         env.setMixStreamTimeCharacteristic(TimeCharacteristic.EventTime);
         env.getConfig().setAutoWatermarkInterval(1000);
+        ParameterTool globalParams = ParameterTool.fromArgs(new String[] {"--jobName", ConstantUtil.JOB_NAME});
+        env.getConfig().setGlobalJobParameters(globalParams);
 
         // source
         SourceFunction<Row> sourceFunction = null;
         switch (source) {
             case "kafka":
-                sourceFunction = new KafkaSpeedRTSourceFunction(servers, sourceDelay, parallelism, maxParallelism);
+                sourceFunction = new KafkaSpeedRTSourceFunction(servers, inputTopic, sourceDelay, parallelism, maxParallelism);
                 break;
             case "mysql":
                 sourceFunction = new SpeedRTSourceFunction(sourceDelay, parallelism, maxParallelism);
                 break;
             default:
-                sourceFunction = new KafkaSpeedRTSourceFunction(servers, sourceDelay, parallelism, maxParallelism);
+                sourceFunction = new KafkaSpeedRTSourceFunction(servers, inputTopic, sourceDelay, parallelism, maxParallelism);
                 break;
         }
         DataMixStream<Row> speedRTSource = env
@@ -146,7 +179,7 @@ public class CityBrainEntry {
                 .setUrl(JDBC_URL)
                 .setUserName(JDBC_USER)
                 .setPassword(JDBC_PWD)
-                .setTableName(dws_tfc_state_rid_tpwkd_index_m)
+                .setTableName(table1)
                 .addfieldInfo("rid", "string")
                 .addfieldInfo("avg_travel_time_3m", "string")
                 .addfieldInfo("day_of_week", "string")
@@ -157,7 +190,7 @@ public class CityBrainEntry {
                 .setUrl(JDBC_URL)
                 .setUserName(JDBC_USER)
                 .setPassword(JDBC_PWD)
-                .setTableName(dws_tfc_state_signinterfridseq_tpwkd_delaydur_m)
+                .setTableName(table2)
                 .addfieldInfo("f_rid", "string")
                 .addfieldInfo("turn_dir_no", "string")
                 .addfieldInfo("avg_trace_travel_time_3m", "string")
@@ -176,7 +209,6 @@ public class CityBrainEntry {
                 .SyncXjoin()
 //                .setShareSlot("xjoin")
                 .setXjoinType(XjoinType.LEFT)
-                .enableIncLog()
                 .enablePartition()
                 .setParallelism(parallelism)
                 .setCacheTimeout(ConstantUtil.CACHE_TIMEOUT)
@@ -191,7 +223,6 @@ public class CityBrainEntry {
                 .SyncXjoin()
 //                .setShareSlot("xjoin")
                 .setXjoinType(XjoinType.INNER)
-                .enableIncLog()
                 .enablePartition()
                 .setParallelism(parallelism)
                 .setCacheTimeout(ConstantUtil.CACHE_TIMEOUT)
@@ -210,7 +241,6 @@ public class CityBrainEntry {
                 .SyncXjoin()
 //                .setShareSlot("xjoin")
                 .setXjoinType(XjoinType.LEFT)
-                .enableIncLog()
                 .enablePartition()
                 .setParallelism(parallelism)
                 .setCacheTimeout(ConstantUtil.CACHE_TIMEOUT)
@@ -226,7 +256,6 @@ public class CityBrainEntry {
                 .SyncXjoin()
 //                .setShareSlot("xjoin")
                 .setXjoinType(XjoinType.LEFT)
-                .enableIncLog()
                 .enablePartition()
                 .setParallelism(parallelism)
                 .setCacheTimeout(ConstantUtil.CACHE_TIMEOUT)
@@ -241,7 +270,6 @@ public class CityBrainEntry {
                 .projectsideTableField(0, 1, 2, 3)
                 .SyncXjoin()
                 .setXjoinType(XjoinType.LEFT)
-                .enableIncLog()
                 .enablePartition()
                 .setParallelism(parallelism)
                 .setCacheTimeout(ConstantUtil.CACHE_TIMEOUT)
@@ -255,7 +283,6 @@ public class CityBrainEntry {
                 .projectsideTableField(0, 1, 2, 3, 4)
                 .SyncXjoin()
                 .setXjoinType(XjoinType.LEFT)
-                .enableIncLog()
                 .enablePartition()
                 .setParallelism(parallelism)
                 .setCacheTimeout(ConstantUtil.CACHE_TIMEOUT)
@@ -272,10 +299,9 @@ public class CityBrainEntry {
         DataMixStream<fRidSeqTurnDirIndexDTO> singleIntersectionAnalysisResult = speedRTWithWatermark
                 .keyBy(0)
                 .window(TumblingEventTimeWindows.of(Time.minutes(1)))
-                .process(new SingleIntersectionAnalysisFunction());
-//        singleIntersectionAnalysisResult.writeAsText("/opt/flink/citybrain.out", OVERWRITE);
-        singleIntersectionAnalysisResult.addSink(new KafkaSinkFunction(servers));
+                .process(new SingleIntersectionAnalysisFunction(isExhibition));
+        singleIntersectionAnalysisResult.addSink(new KafkaSinkFunction(servers, outputTopic)).setParallelism(1);
 
-        env.execute("CityBrainJob");
+        env.execute(ConstantUtil.JOB_NAME);
     }
 }

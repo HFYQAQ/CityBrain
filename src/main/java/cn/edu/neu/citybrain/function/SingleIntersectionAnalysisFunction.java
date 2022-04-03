@@ -9,12 +9,16 @@ import cn.edu.neu.citybrain.dto.my.TurnGranularityInfo;
 import cn.edu.neu.citybrain.evaluation.SingleIntersectionAnalysisV2;
 import cn.edu.neu.citybrain.util.CityBrainUtil;
 import org.apache.flink.api.java.tuple.Tuple;
+import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.mix.api.functions.windowing.ProcessWindowFunction;
 import org.apache.flink.mix.api.windowing.windows.TimeWindow;
 import org.apache.flink.types.Row;
 import org.apache.flink.util.Collector;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -24,16 +28,30 @@ import static cn.edu.neu.citybrain.db.DBConstants.*;
 
 public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Row, fRidSeqTurnDirIndexDTO, Tuple, TimeWindow> {
     private ExecutorService executorService;
+    private boolean isExhibition;
 
     Map<String, List<SigninterfridseqIndex>> seqMap = new HashMap<>(); // 存放<rid, turnDirNo> -> ridseq映射的静态数据
     Map<String, RidInfo> ridIndexM = new HashMap<>(); // 存放 rid -> benchmarkNostopSpeed/映射的静态数据
     Map<String, SigninterfridseqIndex> fridseqIndexM = new HashMap<>();
+
+    // metric
+    private final String METRIC_SQL = "insert into statistic(job_name,subtask_index,dt,step_index_1mi,amount,duration,is_exhibition) values(?,?,?,?,?,?,?)";
+    private Connection metricConnection;
+    private PreparedStatement metricPS;
+
+    public SingleIntersectionAnalysisFunction(boolean isExhibition) {
+        this.isExhibition = isExhibition;
+    }
 
     @Override
     public void open(Configuration parameters) throws Exception {
         super.open(parameters);
 
         this.executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() + 1);
+
+        //metric
+        metricConnection = DBConnection.getConnection();
+        metricPS = metricConnection.prepareStatement(METRIC_SQL);
     }
 
     @Override
@@ -45,7 +63,7 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
     // [15]phase_plan_id, [16]phase_name
     public void process(Tuple tuple, Context context, Iterable<Row> iterable, Collector<fRidSeqTurnDirIndexDTO> collector) throws Exception {
         long beforeProcess = System.currentTimeMillis();
-        int receiveCnt = 0;
+        long amount = 0;
 
         Map<String, List<TurnGranularityInfo>> turnGranularityInfoMap = new HashMap<>();
         Map<String, Set<PhaseInfo>> interAndDirMapPhaseNo = new HashMap<>();
@@ -60,7 +78,7 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
         Long dayOfWeek = 0L;
         Long timestamp = 0L;
         for (Row row : iterable) {
-            receiveCnt++;
+            amount++;
 
             // unit
             String interId = (String) row.getField(1);
@@ -166,16 +184,32 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
                 ridHistTraveltimeMap,
                 interFridSeqTurndirHistIndex);
 
-        int cnt = 0;
+        long afterProcess = System.currentTimeMillis();
+
+        // metric
+        int taskIdx = getRuntimeContext().getIndexOfThisSubtask();
+        long duration = afterProcess - beforeProcess;
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+        String dt = sdf.format(new Date(timestamp));
+        upload(taskIdx, dt, stepIndex1mi, amount, duration, isExhibition);
+
         for (fRidSeqTurnDirIndexDTO fRidSeqTurnDirIndexDTO : results) {
-            if (fRidSeqTurnDirIndexDTO.getTravelTime() != 0.0d) {
-                cnt++;
-            }
             collector.collect(fRidSeqTurnDirIndexDTO);
         }
+    }
 
-        long afterProcess = System.currentTimeMillis();
-        System.out.println("spendtime=" + (afterProcess - beforeProcess) + "ms | " + "receiveCnt=" + receiveCnt + " | " + "rids=" + turnGranularityInfoMap.size() + " | " + "turns=" + results.size() + " | " + "notnull=" + cnt + " | " + "watermark=" + context.currentWatermark() + " | " + context.window());
+    private void upload(int taskIdx, String dt, Long stepIndex1mi, long amount, long duration, boolean isExhibition) throws Exception {
+        metricPS.clearParameters();
+        ParameterTool parameterTool = (ParameterTool) getRuntimeContext().getExecutionConfig().getGlobalJobParameters();
+        String jobName = parameterTool.get("jobName");
+        metricPS.setObject(1, jobName);
+        metricPS.setObject(2, taskIdx);
+        metricPS.setObject(3, dt);
+        metricPS.setObject(4, stepIndex1mi);
+        metricPS.setObject(5, amount);
+        metricPS.setObject(6, duration);
+        metricPS.setObject(7, isExhibition ? 1 : 0);
+        metricPS.executeUpdate();
     }
 
     private void loadBaseData() {
@@ -270,6 +304,14 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
 
         if (this.executorService != null) {
             this.executorService.shutdown();
+        }
+
+        // metric
+        if (metricPS != null) {
+            metricPS.close();
+        }
+        if (metricConnection != null) {
+            metricConnection.close();
         }
     }
 }
