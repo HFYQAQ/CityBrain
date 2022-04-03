@@ -33,6 +33,12 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
     private ExecutorService executorService;
     private boolean isExhibition;
 
+    // cache table
+    private String table1;
+    private String table2;
+    String sql_table1;
+    String sql_table2;
+
     // base table
     Map<String, RidInfo> ridInfoMap = new HashMap<>();
     Map<String, InterLaneInfo> interLaneInfoMap = new HashMap<>();
@@ -48,8 +54,21 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
     private Connection metricConnection;
     private PreparedStatement metricPS;
 
-    public SingleIntersectionAnalysisFunction(boolean isExhibition) {
+    public SingleIntersectionAnalysisFunction(String table1, String table2, boolean isExhibition) {
+        this.table1 = table1;
+        this.table2 = table2;
         this.isExhibition = isExhibition;
+
+        sql_table1 =
+                String.format("select rid, avg_travel_time_3m as travelTime, step_index as stepIndex " +
+                                "from %s where " +
+                                "day_of_week=? and step_index<36;",
+                        table1);
+        sql_table2 =
+                String.format("select f_rid as fRid, turn_dir_no as turnDirNo, avg_trace_travel_time_3m as avgTraceTravelTime, step_index as stepIndex " +
+                                "from %s where " +
+                                "day_of_week=? and step_index<36;",
+                        table2);
     }
 
     @Override
@@ -81,13 +100,13 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
         Long dayOfWeek = 0L;
         Long timestamp = 0L;
         for (Row originRow : iterable) {
-            amount++;
-
             Row[] rows = hashJoin(originRow, ridInfoMap, interLaneInfoMap, seqNdIndexMap, phaseInfoMap);
             if (rows == null) {
                 continue;
             }
             for (Row row : rows) {
+                amount++;
+
                 // unit
                 String interId = (String) row.getField(1);
                 String fRid = (String) row.getField(2);
@@ -239,8 +258,8 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
         DBQuery dbQuery = new DBQuery(executorService);
         // 指标1
         dbQuery.add(
-                DBConstants.dws_tfc_state_rid_tpwkd_index_m,
-                DBConstants.sql_dws_tfc_state_rid_tpwkd_index_m,
+                table1,
+                sql_table1,
                 RidIndex.class,
                 new ArrayList<String>() {
                     {
@@ -250,9 +269,10 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
                     }
                 },
                 curDayOfWeek);
+        System.out.println("[HFYLOG] " + sql_table1 + ", " + curDayOfWeek);
         dbQuery.add(
-                DBConstants.dws_tfc_state_signinterfridseq_tpwkd_delaydur_m,
-                DBConstants.sql_dws_tfc_state_signinterfridseq_tpwkd_delaydur_m,
+                table2,
+                sql_table2,
                 InterFridSeqTurnDirIndex.class,
                 new ArrayList<String>() {
                     {
@@ -263,13 +283,14 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
                     }
                 },
                 curDayOfWeek);
+        System.out.println("[HFYLOG] " + sql_table2 + ", " + curDayOfWeek);
 
         dbQuery.execute();
 
-        cache1 = dbQuery.<RidIndex>get(DBConstants.dws_tfc_state_rid_tpwkd_index_m)
+        cache1 = dbQuery.<RidIndex>get(table1)
                 .stream()
                 .collect(Collectors.groupingBy(RidIndex::getStepIndex));
-        cache2 = dbQuery.<InterFridSeqTurnDirIndex>get(DBConstants.dws_tfc_state_signinterfridseq_tpwkd_delaydur_m)
+        cache2 = dbQuery.<InterFridSeqTurnDirIndex>get(table2)
                 .stream()
                 .collect(Collectors.groupingBy(InterFridSeqTurnDirIndex::getStepIndex));
     }
