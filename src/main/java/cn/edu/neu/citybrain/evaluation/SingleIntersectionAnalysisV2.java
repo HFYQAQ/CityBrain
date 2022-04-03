@@ -74,8 +74,17 @@ public class SingleIntersectionAnalysisV2 {
      */
     private static Double DEFAULT_LIMIT_STOPCNT = 0.5D;
 
-    public SingleIntersectionAnalysisV2(ExecutorService executorService) {
+    private String table1;
+    private String table2;
+    String sql_table1;
+    String sql_table2;
+
+    public SingleIntersectionAnalysisV2(ExecutorService executorService, String table1, String table2, String sqlTable1, String sqlTable2) {
         this.executorService = executorService;
+        this.table1 = table1;
+        this.table2 = table2;
+        this.sql_table1 = sql_table1;
+        this.sql_table2 = sqlTable2;
     }
 
     public Map<String, List<fRidSeqTurnDirIndexDTO>> evaluate(long stepIndex1mi, long stepIndex10mi, long dayOfWeek, long timestamp,
@@ -105,8 +114,8 @@ public class SingleIntersectionAnalysisV2 {
         DBQuery dbQuery = new DBQuery(executorService);
         // 指标1
         dbQuery.add(
-                DBConstants.dws_tfc_state_rid_tpwkd_index_m,
-                DBConstants.sql_dws_tfc_state_rid_tpwkd_index_m,
+                table1,
+                sql_table1,
                 RidIndex.class,
                 new ArrayList<String>() {
                     {
@@ -117,8 +126,8 @@ public class SingleIntersectionAnalysisV2 {
                 dayOfWeek,
                 stepIndex10mi);
         dbQuery.add(
-                DBConstants.dws_tfc_state_signinterfridseq_tpwkd_delaydur_m,
-                DBConstants.sql_dws_tfc_state_signinterfridseq_tpwkd_delaydur_m,
+                table2,
+                sql_table2,
                 InterFridSeqTurnDirIndex.class,
                 new ArrayList<String>() {
                     {
@@ -165,9 +174,9 @@ public class SingleIntersectionAnalysisV2 {
         dbQuery.execute();
 
         // 指标1
-        dbQuery.<RidIndex>get(DBConstants.dws_tfc_state_rid_tpwkd_index_m)
+        dbQuery.<RidIndex>get(table1)
                 .forEach(op -> ridHistTraveltimeMap.put(op.getRid(), op.getTravelTime()));
-        dbQuery.<InterFridSeqTurnDirIndex>get(DBConstants.dws_tfc_state_signinterfridseq_tpwkd_delaydur_m)
+        dbQuery.<InterFridSeqTurnDirIndex>get(table2)
                 .forEach(op -> {
                     String key = CityBrainUtil.concat(op.getfRid(), op.getTurnDirNo());
                     interFridSeqTurndirHistIndex.put(key, op.getAvgTraceTravelTime());

@@ -20,6 +20,9 @@ import org.apache.flink.types.Row;
 
 import java.util.List;
 
+import static cn.edu.neu.citybrain.db.DBConstants.dws_tfc_state_rid_tpwkd_index_m;
+import static cn.edu.neu.citybrain.db.DBConstants.dws_tfc_state_signinterfridseq_tpwkd_delaydur_m;
+
 public class CityBrainEntry {
     public static void main(String[] args) throws Exception {
         // parameters
@@ -35,11 +38,13 @@ public class CityBrainEntry {
                             "\t%-20s%s\n" +
                             "\t%-20s%s\n" +
                             "\t%-20s%s\n" +
+                            "\t%-20s%s\n" +
                             "\t%-20s%s\n",
                     "--source", "kafka or mysql, mysql source is used to debug, default value is kafka",
                     "--input-topic", "kafka topic which to read, default value is \"mock_speed_rt\".",
                     "--output-topic", "kafka topic which to restore results, default value is \"inter_metric\".",
                     "--servers", "kafka servers to connect, must be specified explicitly for kafka source, default value is \"" + Constants.ASTERIA_KAFKA_SERVER + "\".",
+                    "--scale", "scale",
                     "--sourceDelay", "source delay for stream source, default value is \"" + ConstantUtil.SOURCE_DELAY + "\"(ms).",
                     "--parallelism", "parallelism, default value is 1.",
                     "--maxParallelism", "maxParallelism, default value is same with parallelism.",
@@ -63,6 +68,12 @@ public class CityBrainEntry {
         String servers = parameterTool.get("servers") == null ?
                 Constants.ASTERIA_KAFKA_SERVER :
                 parameterTool.get("servers");
+        // scale
+        int scale = parameterTool.get("scale") == null ?
+                0 :
+                Integer.parseInt(parameterTool.get("scale"));
+        String table1 = scale == 0 ? dws_tfc_state_rid_tpwkd_index_m : dws_tfc_state_rid_tpwkd_index_m + "_" + scale;
+        String table2 = scale == 0 ? dws_tfc_state_signinterfridseq_tpwkd_delaydur_m : dws_tfc_state_signinterfridseq_tpwkd_delaydur_m + "_" + scale;
         // delay
         long sourceDelay = parameterTool.get("sourceDelay") == null ?
                 ConstantUtil.SOURCE_DELAY :
@@ -85,11 +96,13 @@ public class CityBrainEntry {
                         "\t%-20s%s\n" +
                         "\t%-20s%s\n" +
                         "\t%-20s%s\n" +
+                        "\t%-20s%s\n" +
                         "\t%-20s%s\n",
                 "--source", source,
                 "--input-topic", inputTopic,
                 "--output-topic", outputTopic,
                 "--servers", servers,
+                "--scale", scale,
                 "--sourceDelay", sourceDelay,
                 "--parallelism", parallelism,
                 "--maxParallelism", maxParallelism,
@@ -135,7 +148,7 @@ public class CityBrainEntry {
         DataStream<List<RoadMetric>> singleIntersectionAnalysisResult = speedRTWithWatermark
                 .keyBy(0)
                 .window(TumblingEventTimeWindows.of(Time.minutes(1)))
-                .process(new SingleIntersectionAnalysisFunction(isExhibition));
+                .process(new SingleIntersectionAnalysisFunction(table1, table2, isExhibition));
 //        singleIntersectionAnalysisResult.writeAsText("/opt/flink/citybrain.out", OVERWRITE);
         singleIntersectionAnalysisResult.addSink(new KafkaSinkFunction(servers, outputTopic)).setParallelism(1);
 //        singleIntersectionAnalysisResult.addSink(new MySQLSinkFunction()).setParallelism(1);
