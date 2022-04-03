@@ -3,6 +3,7 @@ package cn.edu.neu.citybrain;
 import cn.edu.neu.citybrain.connector.kafka.source.KafkaSpeedRTSourceFunction;
 import cn.edu.neu.citybrain.connector.kafka.util.Constants;
 import cn.edu.neu.citybrain.dto.fRidSeqTurnDirIndexDTO;
+import cn.edu.neu.citybrain.function.DefaultValueForNdIndexFunction;
 import cn.edu.neu.citybrain.function.InterLaneScatterFunction;
 import cn.edu.neu.citybrain.function.SingleIntersectionAnalysisFunction;
 import cn.edu.neu.citybrain.function.sink.KafkaSinkFunction;
@@ -243,8 +244,11 @@ public class CityBrainEntry {
                 .enablePartition()
                 .setParallelism(parallelism)
                 .setCacheTimeout(ConstantUtil.CACHE_TIMEOUT)
-                .apply();
+                .apply()
+                .map(new DefaultValueForNdIndexFunction())
+                .returns(DefaultValueForNdIndexFunction.getRowTypeInfo());
 //                .slotSharingGroup("xjoin");
+
         // phasedir
         DataMixStream<Row> sourceExpandRidInfoExpandInterLaneExpandNdIndexExpandPhasedir = sourceExpandRidInfoExpandInterLaneExpandNdIndex
                 .xjoinV4(phasedir)
