@@ -3,6 +3,7 @@ package cn.edu.neu.citybrain;
 import cn.edu.neu.citybrain.connector.kafka.source.KafkaSpeedRTSourceFunction;
 import cn.edu.neu.citybrain.connector.kafka.util.Constants;
 import cn.edu.neu.citybrain.dto.fRidSeqTurnDirIndexDTO;
+import cn.edu.neu.citybrain.dto.my.RoadMetric;
 import cn.edu.neu.citybrain.function.DefaultValueForNdIndexFunction;
 import cn.edu.neu.citybrain.function.InterLaneScatterFunction;
 import cn.edu.neu.citybrain.function.SingleIntersectionAnalysisFunction;
@@ -299,7 +300,7 @@ public class CityBrainEntry {
             }
         });
         // window
-        DataMixStream<fRidSeqTurnDirIndexDTO> singleIntersectionAnalysisResult = speedRTWithWatermark
+        DataMixStream<RoadMetric> singleIntersectionAnalysisResult = speedRTWithWatermark
                 .keyBy(0)
                 .window(TumblingEventTimeWindows.of(Time.minutes(1)))
                 .process(new SingleIntersectionAnalysisFunction(isExhibition));
