@@ -85,9 +85,9 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
             String interId = (String) row.getField(1);
             String fRid = (String) row.getField(2);
             Long turnDirNo = (Long) row.getField(3);
-            stepIndex1mi = (Long) row.getField(4);
-            stepIndex10mi = (Long) row.getField(5);
-            dayOfWeek = (Long) row.getField(6);
+            stepIndex1mi = (Long) row.getField(5);
+            stepIndex10mi = (Long) row.getField(6);
+            dayOfWeek = (Long) row.getField(4);
             timestamp = (Long) row.getField(7);
 
             // dws_tfc_state_rid_tp_lastspeed_rt
@@ -116,6 +116,8 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
             //dws_tfc_state_signinterfridseq_tpwkd_delaydur_m
             String avgTraceTravelTimeStr = (String) row.getField(18);
             Double avgTraceTravelTime = (avgTraceTravelTimeStr == null || avgTraceTravelTimeStr.length() == 0) ? 0d : Double.parseDouble(avgTraceTravelTimeStr);
+
+//            System.out.println("[HFYLOG] " + row);
 
             //----------------------
             // 每个窗口更新一次的数据

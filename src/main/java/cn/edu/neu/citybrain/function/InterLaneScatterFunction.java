@@ -20,9 +20,9 @@ public class InterLaneScatterFunction implements FlatMapFunction<Row, Row> {
             newRow.setField(1, row.getField(10)); // inter_id
             newRow.setField(2, row.getField(1)); // rid
             newRow.setField(3, Long.parseLong(turnDirNo)); // turn_dir_no
-            newRow.setField(4, row.getField(5)); // step_index_1mi
-            newRow.setField(5, row.getField(6)); // step_index_10mi
-            newRow.setField(6, row.getField(7)); // day_of_week
+            newRow.setField(4, row.getField(7)); // day_of_week
+            newRow.setField(5, row.getField(5)); // step_index_1mi
+            newRow.setField(6, row.getField(6)); // step_index_10mi
             newRow.setField(7, row.getField(8)); // timestamp
 
             newRow.setField(8, row.getField(2)); // travel_time

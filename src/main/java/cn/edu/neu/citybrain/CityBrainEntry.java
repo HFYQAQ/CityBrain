@@ -268,7 +268,7 @@ public class CityBrainEntry {
         // dws_tfc_state_rid_tpwkd_index_m
         DataMixStream<Row> sourceExpRidInfoExpLaneExpNdIndexExpPhaseExpTpwkdIndex = sourceExpandRidInfoExpandInterLaneExpandNdIndexExpandPhasedir
                 .xjoinV4(tpwkdIndex)
-                .projectStreamTableKey(2, 5, 6)
+                .projectStreamTableKey(2, 4, 6)
                 .projectStreamTableField(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16)
                 .ProjectSideTableKey(0, 2, 3)
                 .projectsideTableField(0, 1, 2, 3)
@@ -281,7 +281,7 @@ public class CityBrainEntry {
         // dws_tfc_state_signinterfridseq_tpwkd_delaydur_m
         DataMixStream<Row> sourceExpRidInfoExpLaneExpNdIndexExpPhaseExpTpwkdIndexExpDelaydur = sourceExpRidInfoExpLaneExpNdIndexExpPhaseExpTpwkdIndex
                 .xjoinV4(tpwkdDelaydur)
-                .projectStreamTableKey(2, 3, 5, 6)
+                .projectStreamTableKey(2, 3, 4, 6)
                 .projectStreamTableField(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17)
                 .ProjectSideTableKey(0, 1, 3, 4)
                 .projectsideTableField(0, 1, 2, 3, 4)
