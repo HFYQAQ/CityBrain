@@ -53,14 +53,16 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
         this.isExhibition = isExhibition;
 
         sql_table1 =
-                String.format("select rid, avg_travel_time_3m as travelTime, step_index as stepIndex " +
+                String.format("select rid, avg_travel_time_3m as travelTime " +
                                 "from %s where " +
-                                "day_of_week=? and step_index<36;",
+                                "day_of_week=? and " +
+                                "step_index=?;",
                         table1);
         sql_table2 =
-                String.format("select f_rid as fRid, turn_dir_no as turnDirNo, avg_trace_travel_time_3m as avgTraceTravelTime, step_index as stepIndex " +
+                String.format("select f_rid as fRid, turn_dir_no as turnDirNo, avg_trace_travel_time_3m as avgTraceTravelTime " +
                                 "from %s where " +
-                                "day_of_week=? and step_index<36;",
+                                "day_of_week=? and " +
+                                "step_index=?;",
                         table2);
     }
 
@@ -194,7 +196,9 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
         long duration = afterProcess - beforeProcess;
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
         String dt = sdf.format(new Date(timestamp));
+        System.out.println("[HFYLOG] before upload");
         upload(taskIdx, dt, stepIndex1mi, amount, duration, isExhibition);
+        System.out.println("[HFYLOG] after upload");
 
         for (Map.Entry<String, List<fRidSeqTurnDirIndexDTO>> entry : results.entrySet()) {
             List<fRidSeqTurnDirIndexDTO> list = entry.getValue();
@@ -213,6 +217,7 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
                         fRidSeqTurnDirIndexDTO.getQueue());
                 res.add(roadMetric);
             }
+            System.out.println("[HFYLOG] send " + res.size());
             collector.collect(res);
         }
     }

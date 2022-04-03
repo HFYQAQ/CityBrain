@@ -37,9 +37,11 @@ public class KafkaSinkFunction extends RichSinkFunction<List<RoadMetric>> {
 
     @Override
     public void invoke(List<RoadMetric> value, Context context) throws Exception {
+        System.out.println("[HFYLOG] receive " + value.size());
         for (RoadMetric roadMetric : value) {
             producer.send(new ProducerRecord<>(topic, roadMetric.toString()));
         }
+        System.out.println("[HFYLOG] produce to kafka.");
     }
 
     @Override

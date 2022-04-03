@@ -83,7 +83,7 @@ public class SingleIntersectionAnalysisV2 {
         this.executorService = executorService;
         this.table1 = table1;
         this.table2 = table2;
-        this.sql_table1 = sql_table1;
+        this.sql_table1 = sqlTable1;
         this.sql_table2 = sqlTable2;
     }
 
