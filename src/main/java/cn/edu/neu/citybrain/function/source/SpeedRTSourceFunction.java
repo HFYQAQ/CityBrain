@@ -127,4 +127,9 @@ public class SpeedRTSourceFunction extends RichSourceFunction<Row> {
                 TypeInformation.of(Long.TYPE),
                 TypeInformation.of(Long.TYPE));
     }
+
+    public static void main(String[] args) throws Exception {
+        SpeedRTSourceFunction speedRTSourceFunction = new SpeedRTSourceFunction(0, 128, 128);
+        speedRTSourceFunction.open(null);
+    }
 }

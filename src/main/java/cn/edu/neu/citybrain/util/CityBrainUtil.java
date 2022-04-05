@@ -17,7 +17,7 @@ public class CityBrainUtil {
             int key = random.nextInt(maxParallelism * 100);
             int subTaskIdx;
             while (set.contains(subTaskIdx = KeyGroupRangeAssignment.assignKeyToParallelOperator(key, maxParallelism, parallelism))) {
-                key = random.nextInt(200);
+                key = random.nextInt(maxParallelism * 100);
             }
             set.add(subTaskIdx);
             res[i] = key;

@@ -138,38 +138,38 @@ public class SingleIntersectionAnalysisV2 {
                 },
                 dayOfWeek,
                 stepIndex10mi);
-        // 指标3
-        dbQuery.add(
-                DBConstants.dwd_tfc_ctl_intersignal_oper_rt,
-                DBConstants.sql_dwd_tfc_ctl_intersignal_oper_rt,
-                InterSignalOperPlan.class,
-                new ArrayList<String>() {
-                    {
-                        add("interId");
-                        add("phasePlanId");
-                        add("cycleStartTime");
-                        add("phaseName");
-                        add("splitTime");
-                        add("cycleTime");
-                        add("greenTime");
-                    }
-                },
-                timestamp);
-        // 指标4
-        dbQuery.add(
-                DBConstants.dws_tfc_trl_interfridlane_tp_smtmultiflow_rt,
-                DBConstants.sql_dws_tfc_trl_interfridlane_tp_smtmultiflow_rt,
-                InterfridlaneTpMultiflowDto.class,
-                new ArrayList<String>() {
-                    {
-                        add("interId");
-                        add("rid");
-                        add("laneId");
-                        add("flow");
-                        add("reliabilityCode");
-                    }
-                },
-                stepIndex1mi / 5);
+//        // 指标3
+//        dbQuery.add(
+//                DBConstants.dwd_tfc_ctl_intersignal_oper_rt,
+//                DBConstants.sql_dwd_tfc_ctl_intersignal_oper_rt,
+//                InterSignalOperPlan.class,
+//                new ArrayList<String>() {
+//                    {
+//                        add("interId");
+//                        add("phasePlanId");
+//                        add("cycleStartTime");
+//                        add("phaseName");
+//                        add("splitTime");
+//                        add("cycleTime");
+//                        add("greenTime");
+//                    }
+//                },
+//                timestamp);
+//        // 指标4
+//        dbQuery.add(
+//                DBConstants.dws_tfc_trl_interfridlane_tp_smtmultiflow_rt,
+//                DBConstants.sql_dws_tfc_trl_interfridlane_tp_smtmultiflow_rt,
+//                InterfridlaneTpMultiflowDto.class,
+//                new ArrayList<String>() {
+//                    {
+//                        add("interId");
+//                        add("rid");
+//                        add("laneId");
+//                        add("flow");
+//                        add("reliabilityCode");
+//                    }
+//                },
+//                stepIndex1mi / 5);
 
         dbQuery.execute();
 
@@ -181,13 +181,13 @@ public class SingleIntersectionAnalysisV2 {
                     String key = CityBrainUtil.concat(op.getfRid(), op.getTurnDirNo());
                     interFridSeqTurndirHistIndex.put(key, op.getAvgTraceTravelTime());
                 });
-        // 指标3
-        interSignalOperPlansM = dbQuery.<InterSignalOperPlan>get(DBConstants.dwd_tfc_ctl_intersignal_oper_rt)
-                .stream()
-                .collect(Collectors.groupingBy(InterSignalOperPlan::getInterId));
-        // 指标4
-        dbQuery.<InterfridlaneTpMultiflowDto>get(DBConstants.dws_tfc_trl_interfridlane_tp_smtmultiflow_rt)
-                .forEach(op -> laneFlowMap.put(op.getLaneId(), op));
+//        // 指标3
+//        interSignalOperPlansM = dbQuery.<InterSignalOperPlan>get(DBConstants.dwd_tfc_ctl_intersignal_oper_rt)
+//                .stream()
+//                .collect(Collectors.groupingBy(InterSignalOperPlan::getInterId));
+//        // 指标4
+//        dbQuery.<InterfridlaneTpMultiflowDto>get(DBConstants.dws_tfc_trl_interfridlane_tp_smtmultiflow_rt)
+//                .forEach(op -> laneFlowMap.put(op.getLaneId(), op));
     }
 
     private Map<String, List<fRidSeqTurnDirIndexDTO>> caculate() throws Exception {
