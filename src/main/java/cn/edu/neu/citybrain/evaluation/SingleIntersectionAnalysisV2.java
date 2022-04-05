@@ -106,49 +106,49 @@ public class SingleIntersectionAnalysisV2 {
     private void prepareData(long stepIndex1mi, long stepIndex10mi, long dayOfWeek, long timestamp) {
         currTimeSlice = new TimeSlice(stepIndex1mi, "1mi"); // HFY: 不知道tp怎么传过来，姑且设置个1mi吧
 
-        DBQuery dbQuery = new DBQuery(executorService);
-        // 指标3
-        dbQuery.add(
-                DBConstants.dwd_tfc_ctl_intersignal_oper_rt,
-                DBConstants.sql_dwd_tfc_ctl_intersignal_oper_rt,
-                InterSignalOperPlan.class,
-                new ArrayList<String>() {
-                    {
-                        add("interId");
-                        add("phasePlanId");
-                        add("cycleStartTime");
-                        add("phaseName");
-                        add("splitTime");
-                        add("cycleTime");
-                        add("greenTime");
-                    }
-                },
-                timestamp);
-        // 指标4
-        dbQuery.add(
-                DBConstants.dws_tfc_trl_interfridlane_tp_smtmultiflow_rt,
-                DBConstants.sql_dws_tfc_trl_interfridlane_tp_smtmultiflow_rt,
-                InterfridlaneTpMultiflowDto.class,
-                new ArrayList<String>() {
-                    {
-                        add("interId");
-                        add("rid");
-                        add("laneId");
-                        add("flow");
-                        add("reliabilityCode");
-                    }
-                },
-                stepIndex1mi / 5);
-
-        dbQuery.execute();
-
-        // 指标3
-        interSignalOperPlansM = dbQuery.<InterSignalOperPlan>get(DBConstants.dwd_tfc_ctl_intersignal_oper_rt)
-                .stream()
-                .collect(Collectors.groupingBy(InterSignalOperPlan::getInterId));
-        // 指标4
-        dbQuery.<InterfridlaneTpMultiflowDto>get(DBConstants.dws_tfc_trl_interfridlane_tp_smtmultiflow_rt)
-                .forEach(op -> laneFlowMap.put(op.getLaneId(), op));
+//        DBQuery dbQuery = new DBQuery(executorService);
+//        // 指标3
+//        dbQuery.add(
+//                DBConstants.dwd_tfc_ctl_intersignal_oper_rt,
+//                DBConstants.sql_dwd_tfc_ctl_intersignal_oper_rt,
+//                InterSignalOperPlan.class,
+//                new ArrayList<String>() {
+//                    {
+//                        add("interId");
+//                        add("phasePlanId");
+//                        add("cycleStartTime");
+//                        add("phaseName");
+//                        add("splitTime");
+//                        add("cycleTime");
+//                        add("greenTime");
+//                    }
+//                },
+//                timestamp);
+//        // 指标4
+//        dbQuery.add(
+//                DBConstants.dws_tfc_trl_interfridlane_tp_smtmultiflow_rt,
+//                DBConstants.sql_dws_tfc_trl_interfridlane_tp_smtmultiflow_rt,
+//                InterfridlaneTpMultiflowDto.class,
+//                new ArrayList<String>() {
+//                    {
+//                        add("interId");
+//                        add("rid");
+//                        add("laneId");
+//                        add("flow");
+//                        add("reliabilityCode");
+//                    }
+//                },
+//                stepIndex1mi / 5);
+//
+//        dbQuery.execute();
+//
+//        // 指标3
+//        interSignalOperPlansM = dbQuery.<InterSignalOperPlan>get(DBConstants.dwd_tfc_ctl_intersignal_oper_rt)
+//                .stream()
+//                .collect(Collectors.groupingBy(InterSignalOperPlan::getInterId));
+//        // 指标4
+//        dbQuery.<InterfridlaneTpMultiflowDto>get(DBConstants.dws_tfc_trl_interfridlane_tp_smtmultiflow_rt)
+//                .forEach(op -> laneFlowMap.put(op.getLaneId(), op));
     }
 
     private List<fRidSeqTurnDirIndexDTO> caculate() throws Exception {
