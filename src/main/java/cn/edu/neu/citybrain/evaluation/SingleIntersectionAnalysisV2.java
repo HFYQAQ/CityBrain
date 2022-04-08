@@ -107,7 +107,7 @@ public class SingleIntersectionAnalysisV2 {
         currTimeSlice = new TimeSlice(stepIndex1mi, "1mi"); // HFY: 不知道tp怎么传过来，姑且设置个1mi吧
 
 //        DBQuery dbQuery = new DBQuery(executorService);
-//        // 指标3
+        // 指标3
 //        dbQuery.add(
 //                DBConstants.dwd_tfc_ctl_intersignal_oper_rt,
 //                DBConstants.sql_dwd_tfc_ctl_intersignal_oper_rt,
@@ -139,10 +139,10 @@ public class SingleIntersectionAnalysisV2 {
 //                    }
 //                },
 //                stepIndex1mi / 5);
-//
+
 //        dbQuery.execute();
-//
-//        // 指标3
+
+        // 指标3
 //        interSignalOperPlansM = dbQuery.<InterSignalOperPlan>get(DBConstants.dwd_tfc_ctl_intersignal_oper_rt)
 //                .stream()
 //                .collect(Collectors.groupingBy(InterSignalOperPlan::getInterId));

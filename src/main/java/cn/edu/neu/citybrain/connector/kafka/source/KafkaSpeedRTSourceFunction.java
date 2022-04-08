@@ -74,7 +74,8 @@ public class KafkaSpeedRTSourceFunction extends RichSourceFunction<Row> {
 
         consumer.subscribe(Arrays.asList(topic));
         for (;;) {
-            ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(500));
+            ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(3000));
+
             loop++;
             for (ConsumerRecord<String, String> record : records) {
                 String line = record.value();

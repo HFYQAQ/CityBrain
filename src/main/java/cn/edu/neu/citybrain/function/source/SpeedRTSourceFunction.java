@@ -18,15 +18,21 @@ import java.sql.SQLException;
 public class SpeedRTSourceFunction extends RichSourceFunction<Row> {
     private transient Connection conn;
     private transient PreparedStatement statement;
-    private int curStepIndex = 883;
-    private long delay; // ms
+
+    private String tableName;
+    private long stepIndexNum;
+    private long sourceDelay;
+    private long interval; // ms
     private int parallelism;
     private int maxParallelism;
     private static int autoInc; // 对parallelism取模为每条数据打上key，实现rebalance，保证同一个子任务上的数据共用同一个key
     private int[] preallocatedKeys;
 
-    public SpeedRTSourceFunction(long delay, int parallelism, int maxParallelism) {
-        this.delay = delay;
+    public SpeedRTSourceFunction(String tableName, long stepIndexNum, long sourceDelay, long interval, int parallelism, int maxParallelism) {
+        this.tableName = tableName;
+        this.stepIndexNum = stepIndexNum;
+        this.sourceDelay = sourceDelay;
+        this.interval = interval;
         this.parallelism = parallelism;
         this.maxParallelism = maxParallelism;
     }
@@ -45,7 +51,8 @@ public class SpeedRTSourceFunction extends RichSourceFunction<Row> {
         }
         if (this.statement == null) {
             try {
-                this.statement = this.conn.prepareStatement(DBConstants.SPEED_RT_SOURCE);
+                this.statement = this.conn.prepareStatement(
+                        String.format("select rid, travel_time, speed, reliability_code, step_index, WEEKDAY(dt) as day_of_week, UNIX_TIMESTAMP(dt) as timestamp from %s where step_index=?;", tableName));
             } catch (SQLException throwables) {
                 throwables.printStackTrace();
             }
@@ -57,16 +64,18 @@ public class SpeedRTSourceFunction extends RichSourceFunction<Row> {
 
     @Override
     public void run(SourceContext<Row> sourceContext) throws Exception {
-        int autoIncStepIndex = 0; // 每轮读取的都是相同数据，所以为了驱动上一个窗口，时间片递增。
-
-        for (int i = 0; i < 7; i++) {
+        System.out.printf("waiting for side table loaded with sourceDelay %d.\n", sourceDelay);
+        int sleepCnt = (int) sourceDelay / 5000;
+        for (int i = 0; i < sleepCnt; i++) {
             Thread.sleep(5 * 1000);
             System.out.printf("sleeping %ds.\n", (i + 1) * 5);
         }
         System.out.println("unblock stream");
 
-        for (int i = 0; i < 2; i++) {
+        for (int autoIncStepIndex = 0; autoIncStepIndex < stepIndexNum; autoIncStepIndex++) {
             try {
+                statement.clearParameters();
+                statement.setObject(1, autoIncStepIndex);
                 ResultSet resultSet = statement.executeQuery();
                 while (resultSet.next()) {
                     Row ret = new Row(9);
@@ -76,7 +85,7 @@ public class SpeedRTSourceFunction extends RichSourceFunction<Row> {
                     ret.setField(2, resultSet.getDouble("travel_time"));
                     ret.setField(3, resultSet.getDouble("speed"));
                     ret.setField(4, resultSet.getDouble("reliability_code"));
-                    long step_index_1mi = (long) resultSet.getInt("step_index") + autoIncStepIndex;
+                    long step_index_1mi = resultSet.getInt("step_index");
                     ret.setField(5, step_index_1mi);
                     long step_index_10mi = step_index_1mi / 10;
                     ret.setField(6, step_index_10mi); // convert from 1mi to 10mi
@@ -87,11 +96,10 @@ public class SpeedRTSourceFunction extends RichSourceFunction<Row> {
             } catch (SQLException e) {
                 e.printStackTrace();
             }
-            autoIncStepIndex++;
 
             // delay
             try {
-                Thread.sleep(delay);
+                Thread.sleep(interval);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
