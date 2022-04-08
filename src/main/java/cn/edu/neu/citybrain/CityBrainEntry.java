@@ -2,7 +2,6 @@ package cn.edu.neu.citybrain;
 
 import cn.edu.neu.citybrain.connector.kafka.source.KafkaSpeedRTSourceFunction;
 import cn.edu.neu.citybrain.connector.kafka.util.Constants;
-import cn.edu.neu.citybrain.dto.fRidSeqTurnDirIndexDTO;
 import cn.edu.neu.citybrain.dto.my.RoadMetric;
 import cn.edu.neu.citybrain.function.DefaultValueForNdIndexFunction;
 import cn.edu.neu.citybrain.function.InterLaneScatterFunction;
