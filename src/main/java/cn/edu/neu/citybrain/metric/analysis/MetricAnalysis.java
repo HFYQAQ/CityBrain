@@ -68,17 +68,30 @@ public class MetricAnalysis {
             String keyJobDtIndex = entry.getKey();
             List<Statistic> list = entry.getValue();
 
-            long totalAmount = 0;
+//            long totalAmount = 0;
+//            long totalDuration = 0;
+//            for (Statistic statistic : list) {
+//                totalAmount += statistic.getAmount();
+//                totalDuration += statistic.getDuration();
+//            }
+//            long avgDuration = totalDuration / list.size();
+//            double throughput = totalAmount * 1.0 / avgDuration * 1000;
+//            double delay = avgDuration * 1.0 / totalAmount;
+//            String[] splits = CityBrainUtil.split(keyJobDtIndex);
+
+            long totalAmount = 89735;
             long totalDuration = 0;
+            long maxDuration = Long.MIN_VALUE;
             for (Statistic statistic : list) {
-                totalAmount += statistic.getAmount();
+                maxDuration = Math.max(maxDuration, statistic.getDuration());
                 totalDuration += statistic.getDuration();
             }
-            long avgDuration = totalDuration / list.size();
-            double throughput = totalAmount * 1.0 / avgDuration * 1000;
-            double delay = avgDuration * 1.0 / totalAmount;
-            String[] splits = CityBrainUtil.split(keyJobDtIndex);
+            // throughput
+            double throughput = totalAmount * 1.0 / maxDuration * 1000;
+            // delay
+            double delay = totalDuration * 1.0 / totalAmount;
 
+            String[] splits = CityBrainUtil.split(keyJobDtIndex);
             if (splits.length == 3) {
                 Metric metric = new Metric(splits[0], splits[1], Long.parseLong(splits[2]), throughput, delay);
                 metrics.add(metric);

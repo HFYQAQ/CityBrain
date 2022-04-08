@@ -23,6 +23,8 @@ public class SingleIntersectionAnalysisV2 {
     private Map<String, List<InterSignalOperPlan>> interSignalOperPlansM = new HashMap<>(); // dwd_tfc_ctl_intersignal_oper_rt
     private Map<Object, InterfridlaneTpMultiflowDto> laneFlowMap = new HashMap<>(); // dws_tfc_trl_interfridlane_tp_smtmultiflow_rt
 
+    private Random random = new Random(System.currentTimeMillis());
+
     /**
      * 当前计算的参数信息
      */
@@ -125,19 +127,19 @@ public class SingleIntersectionAnalysisV2 {
                 },
                 dayOfWeek,
                 stepIndex10mi);
-        dbQuery.add(
-                table2,
-                sql_table2,
-                InterFridSeqTurnDirIndex.class,
-                new ArrayList<String>() {
-                    {
-                        add("fRid");
-                        add("turnDirNo");
-                        add("avgTraceTravelTime");
-                    }
-                },
-                dayOfWeek,
-                stepIndex10mi);
+//        dbQuery.add(
+//                table2,
+//                sql_table2,
+//                InterFridSeqTurnDirIndex.class,
+//                new ArrayList<String>() {
+//                    {
+//                        add("fRid");
+//                        add("turnDirNo");
+//                        add("avgTraceTravelTime");
+//                    }
+//                },
+//                dayOfWeek,
+//                stepIndex10mi);
 //        // 指标3
 //        dbQuery.add(
 //                DBConstants.dwd_tfc_ctl_intersignal_oper_rt,
@@ -155,7 +157,7 @@ public class SingleIntersectionAnalysisV2 {
 //                    }
 //                },
 //                timestamp);
-//        // 指标4
+        // 指标4
 //        dbQuery.add(
 //                DBConstants.dws_tfc_trl_interfridlane_tp_smtmultiflow_rt,
 //                DBConstants.sql_dws_tfc_trl_interfridlane_tp_smtmultiflow_rt,
@@ -176,11 +178,11 @@ public class SingleIntersectionAnalysisV2 {
         // 指标1
         dbQuery.<RidIndex>get(table1)
                 .forEach(op -> ridHistTraveltimeMap.put(op.getRid(), op.getTravelTime()));
-        dbQuery.<InterFridSeqTurnDirIndex>get(table2)
-                .forEach(op -> {
-                    String key = CityBrainUtil.concat(op.getfRid(), op.getTurnDirNo());
-                    interFridSeqTurndirHistIndex.put(key, op.getAvgTraceTravelTime());
-                });
+//        dbQuery.<InterFridSeqTurnDirIndex>get(table2)
+//                .forEach(op -> {
+//                    String key = CityBrainUtil.concat(op.getfRid(), op.getTurnDirNo());
+//                    interFridSeqTurndirHistIndex.put(key, op.getAvgTraceTravelTime());
+//                });
 //        // 指标3
 //        interSignalOperPlansM = dbQuery.<InterSignalOperPlan>get(DBConstants.dwd_tfc_ctl_intersignal_oper_rt)
 //                .stream()
@@ -242,7 +244,8 @@ public class SingleIntersectionAnalysisV2 {
     }
 
     private double getOneRidBenchmarkTravelTime(String subRid) {
-        return 300.0 / 40.0 * 3.6;
+        return random.nextInt(70) + random.nextDouble();
+//        return 300.0 / 40.0 * 3.6;
     }
 
     private double sumRidseqRealtimeTraveltime(TurnGranularityInfo turnGranularityInfo) {
