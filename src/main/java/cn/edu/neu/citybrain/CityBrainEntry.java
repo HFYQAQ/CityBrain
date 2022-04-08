@@ -39,13 +39,19 @@ public class CityBrainEntry {
                             "\t%-20s%s\n" +
                             "\t%-20s%s\n" +
                             "\t%-20s%s\n" +
+                            "\t%-20s%s\n" +
+                            "\t%-20s%s\n" +
+                            "\t%-20s%s\n" +
                             "\t%-20s%s\n",
                     "--source", "kafka or mysql, mysql source is used to debug, default value is kafka",
                     "--input-topic", "kafka topic which to read, default value is \"mock_speed_rt\".",
                     "--output-topic", "kafka topic which to restore results, default value is \"inter_metric\".",
                     "--servers", "kafka servers to connect, must be specified explicitly for kafka source, default value is \"" + Constants.ASTERIA_KAFKA_SERVER + "\".",
+                    "--source-table", "default mock_speed_rt",
+                    "--step-index-num", "default 60",
                     "--scale", "scale",
                     "--sourceDelay", "source delay for stream source, default value is \"" + ConstantUtil.SOURCE_DELAY + "\"(ms).",
+                    "--interval", "read interval for mysql, default 10000",
                     "--parallelism", "parallelism, default value is 1.",
                     "--maxParallelism", "maxParallelism, default value is same with parallelism.",
                     "--flinkVersion", "flink version which is used to define job name, default value is \"\".",
@@ -68,6 +74,14 @@ public class CityBrainEntry {
         String servers = parameterTool.get("servers") == null ?
                 Constants.ASTERIA_KAFKA_SERVER :
                 parameterTool.get("servers");
+        // source-table
+        String sourceTableName = parameterTool.get("source-table") == null ?
+                "mock_speed_rt" :
+                parameterTool.get("source-table");
+        // stepIndexNum
+        long stepIndexNum = parameterTool.get("step-index-num") == null ?
+                60 :
+                Long.parseLong(parameterTool.get("step-index-num"));
         // scale
         int scale = parameterTool.get("scale") == null ?
                 0 :
@@ -78,6 +92,10 @@ public class CityBrainEntry {
         long sourceDelay = parameterTool.get("sourceDelay") == null ?
                 ConstantUtil.SOURCE_DELAY :
                 Long.parseLong(parameterTool.get("sourceDelay"));
+        // interval
+        long interval = parameterTool.get("interval") == null ?
+                10000 :
+                Long.parseLong(parameterTool.get("interval"));
         // parallelism
         int parallelism = parameterTool.get("parallelism") == null ? 1 : Integer.parseInt(parameterTool.get("parallelism"));
         // maxParallelism
@@ -97,13 +115,19 @@ public class CityBrainEntry {
                         "\t%-20s%s\n" +
                         "\t%-20s%s\n" +
                         "\t%-20s%s\n" +
+                        "\t%-20s%s\n" +
+                        "\t%-20s%s\n" +
+                        "\t%-20s%s\n" +
                         "\t%-20s%s\n",
                 "--source", source,
                 "--input-topic", inputTopic,
                 "--output-topic", outputTopic,
                 "--servers", servers,
+                "--source-table", sourceTableName,
+                "--step-index-num", stepIndexNum,
                 "--scale", scale,
                 "--sourceDelay", sourceDelay,
+                "--interval", interval,
                 "--parallelism", parallelism,
                 "--maxParallelism", maxParallelism,
                 "--flinkVersion", flinkVersion,
@@ -126,7 +150,7 @@ public class CityBrainEntry {
                 sourceFunction = new KafkaSpeedRTSourceFunction(servers, inputTopic, sourceDelay, parallelism, maxParallelism);
                 break;
             case "mysql":
-                sourceFunction = new SpeedRTSourceFunction(sourceDelay, parallelism, maxParallelism);
+                sourceFunction = new SpeedRTSourceFunction(sourceTableName, stepIndexNum, sourceDelay, interval, parallelism, maxParallelism);
                 break;
             default:
                 sourceFunction = new KafkaSpeedRTSourceFunction(servers, inputTopic, sourceDelay, parallelism, maxParallelism);
