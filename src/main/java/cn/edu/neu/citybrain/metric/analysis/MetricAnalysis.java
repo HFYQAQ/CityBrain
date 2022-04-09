@@ -81,13 +81,21 @@ public class MetricAnalysis {
 
             long totalAmount = 89735;
             long totalDuration = 0;
+            long minDuration = Long.MAX_VALUE;
             long maxDuration = Long.MIN_VALUE;
             for (Statistic statistic : list) {
+                minDuration = Math.min(minDuration, statistic.getDuration());
                 maxDuration = Math.max(maxDuration, statistic.getDuration());
                 totalDuration += statistic.getDuration();
             }
             // throughput
-            double throughput = totalAmount * 1.0 / maxDuration * 1000;
+            double throughput;
+            if (list.get(0) != null && list.get(0).getJobName().contains("Xjoin")) {
+                long avgDuration = totalDuration / list.size();
+                throughput = totalAmount * 1.0 / maxDuration * 1000;
+            } else {
+                throughput = totalAmount * 1.0 / minDuration * 1000;
+            }
             // delay
             double delay = totalDuration * 1.0 / totalAmount;
 
