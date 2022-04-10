@@ -1,6 +1,5 @@
 package cn.edu.neu.citybrain.function.source;
 
-import cn.edu.neu.citybrain.db.DBConstants;
 import cn.edu.neu.citybrain.db.DBConnection;
 import cn.edu.neu.citybrain.util.CityBrainUtil;
 import org.apache.flink.api.common.typeinfo.BasicTypeInfo;
