@@ -32,6 +32,7 @@ public class InterLaneScatterFunction implements FlatMapFunction<Row, Row> {
             newRow.setField(11, row.getField(9).equals("") ? 0d : Double.parseDouble((String) row.getField(9))); // len
 
             newRow.setField(12, row.getField(12)); // lane_id
+
             collector.collect(newRow);
         }
     }

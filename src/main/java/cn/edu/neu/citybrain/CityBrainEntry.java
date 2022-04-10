@@ -134,6 +134,7 @@ public class CityBrainEntry {
         final MixStreamExecutionEnvironment env = MixStreamContextEnvironment.getExecutionEnvironment()
                 .setParallelism(parallelism)
                 .setMaxParallelism(maxParallelism);
+        env.disableOperatorChaining();
         env.setMixStreamTimeCharacteristic(TimeCharacteristic.EventTime);
         env.getConfig().setAutoWatermarkInterval(1000);
         ParameterTool globalParams = ParameterTool.fromArgs(new String[] {"--jobName", ConstantUtil.JOB_NAME});
