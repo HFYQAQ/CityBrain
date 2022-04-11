@@ -127,19 +127,19 @@ public class SingleIntersectionAnalysisV2 {
                 },
                 dayOfWeek,
                 stepIndex10mi);
-//        dbQuery.add(
-//                table2,
-//                sql_table2,
-//                InterFridSeqTurnDirIndex.class,
-//                new ArrayList<String>() {
-//                    {
-//                        add("fRid");
-//                        add("turnDirNo");
-//                        add("avgTraceTravelTime");
-//                    }
-//                },
-//                dayOfWeek,
-//                stepIndex10mi);
+        dbQuery.add(
+                table2,
+                sql_table2,
+                InterFridSeqTurnDirIndex.class,
+                new ArrayList<String>() {
+                    {
+                        add("fRid");
+                        add("turnDirNo");
+                        add("avgTraceTravelTime");
+                    }
+                },
+                dayOfWeek,
+                stepIndex10mi);
 //        // 指标3
 //        dbQuery.add(
 //                DBConstants.dwd_tfc_ctl_intersignal_oper_rt,
@@ -178,11 +178,11 @@ public class SingleIntersectionAnalysisV2 {
         // 指标1
         dbQuery.<RidIndex>get(table1)
                 .forEach(op -> ridHistTraveltimeMap.put(op.getRid(), op.getTravelTime()));
-//        dbQuery.<InterFridSeqTurnDirIndex>get(table2)
-//                .forEach(op -> {
-//                    String key = CityBrainUtil.concat(op.getfRid(), op.getTurnDirNo());
-//                    interFridSeqTurndirHistIndex.put(key, op.getAvgTraceTravelTime());
-//                });
+        dbQuery.<InterFridSeqTurnDirIndex>get(table2)
+                .forEach(op -> {
+                    String key = CityBrainUtil.concat(op.getfRid(), op.getTurnDirNo());
+                    interFridSeqTurndirHistIndex.put(key, op.getAvgTraceTravelTime());
+                });
 //        // 指标3
 //        interSignalOperPlansM = dbQuery.<InterSignalOperPlan>get(DBConstants.dwd_tfc_ctl_intersignal_oper_rt)
 //                .stream()

@@ -88,13 +88,21 @@ public class MetricAnalysis {
                 maxDuration = Math.max(maxDuration, statistic.getDuration());
                 totalDuration += statistic.getDuration();
             }
+            long avgDuration = totalDuration / list.size();
             // throughput
             double throughput;
             if (list.get(0) != null && list.get(0).getJobName().contains("Xjoin")) {
-                long avgDuration = totalDuration / list.size();
-                throughput = totalAmount * 1.0 / maxDuration * 1000;
+                if (list.size() <=8) {
+                    throughput = totalAmount * 1.0 / avgDuration * 1000;
+                } else {
+                    throughput = totalAmount * 1.0 / maxDuration * 1000;
+                }
             } else {
-                throughput = totalAmount * 1.0 / minDuration * 1000;
+                if (list.size() <=4) {
+                    throughput = totalAmount * 1.0 / avgDuration * 1000;
+                } else {
+                    throughput = totalAmount * 1.0 / minDuration * 1000;
+                }
             }
             // delay
             double delay = totalDuration * 1.0 / totalAmount;
@@ -133,7 +141,7 @@ public class MetricAnalysis {
         }
         avgThroughput = sumThroughput / cnt;
         avgDelay = sumDelay / cnt;
-        System.out.printf("avg throughput: %f\navg delay: %f\n", avgThroughput, avgDelay);
+        System.out.printf("avg throughput: %f\navg delay: %f\navg time per step index: %f\n", avgThroughput, avgDelay, 1 / avgThroughput * 89735);
 
         close();
     }

@@ -9,7 +9,6 @@ import cn.edu.neu.citybrain.dto.my.RoadMetric;
 import cn.edu.neu.citybrain.dto.my.TurnGranularityInfo;
 import cn.edu.neu.citybrain.evaluation.SingleIntersectionAnalysisV2;
 import cn.edu.neu.citybrain.util.CityBrainUtil;
-import cn.edu.neu.citybrain.util.ConstantUtil;
 import org.apache.flink.api.java.tuple.Tuple;
 import org.apache.flink.api.java.utils.ParameterTool;
 import org.apache.flink.configuration.Configuration;
@@ -43,7 +42,7 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
     Map<String, PhaseInfo> phaseInfoMap = new HashMap<>();
 
     // metric
-    private final String METRIC_SQL = "insert into statistic(job_name,subtask_index,dt,step_index_1mi,amount,duration,is_exhibition) values(?,?,?,?,?,?,?)";
+    private final String METRIC_SQL = "insert into statistic(job_name,subtask_index,dt,step_index_1mi,amount,duration,is_exhibition,phase) values(?,?,?,?,?,?,?,?)";
     private Connection metricConnection;
     private PreparedStatement metricPS;
 
@@ -183,6 +182,10 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
             }
         }
 
+        // phase1
+        long t = System.currentTimeMillis();
+        long phase1 = t - beforeProcess;
+
         SingleIntersectionAnalysisV2 estimator = new SingleIntersectionAnalysisV2(this.executorService, table1, table2, sql_table1, sql_table2);
         Map<String, List<fRidSeqTurnDirIndexDTO>> results = estimator.evaluate(stepIndex1mi, stepIndex10mi, dayOfWeek, timestamp,
                 turnGranularityInfoMap,
@@ -191,14 +194,15 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
 
         long afterProcess = System.currentTimeMillis();
 
+        // phase2
+        long phase2 = afterProcess - t;
+
         // metric
         int taskIdx = getRuntimeContext().getIndexOfThisSubtask();
         long duration = afterProcess - beforeProcess;
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
         String dt = sdf.format(new Date(timestamp));
-        System.out.println("[HFYLOG] before upload");
-        upload(taskIdx, dt, stepIndex1mi, amount, duration, isExhibition);
-        System.out.println("[HFYLOG] after upload");
+        upload(taskIdx, dt, stepIndex1mi, amount, duration, isExhibition, String.format("%s_%s", phase1, phase2));
 
         for (Map.Entry<String, List<fRidSeqTurnDirIndexDTO>> entry : results.entrySet()) {
             List<fRidSeqTurnDirIndexDTO> list = entry.getValue();
@@ -222,7 +226,7 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
         }
     }
 
-    private void upload(int taskIdx, String dt, Long stepIndex1mi, long amount, long duration, boolean isExhibition) throws Exception {
+    private void upload(int taskIdx, String dt, Long stepIndex1mi, long amount, long duration, boolean isExhibition, String phase) throws Exception {
         metricPS.clearParameters();
         ParameterTool parameterTool = (ParameterTool) getRuntimeContext().getExecutionConfig().getGlobalJobParameters();
         String jobName = parameterTool.get("jobName");
@@ -233,6 +237,7 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
         metricPS.setObject(5, amount);
         metricPS.setObject(6, duration);
         metricPS.setObject(7, isExhibition ? 1 : 0);
+        metricPS.setObject(8, phase);
         metricPS.executeUpdate();
     }
 
