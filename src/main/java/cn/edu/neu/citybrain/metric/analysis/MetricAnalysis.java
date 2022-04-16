@@ -89,21 +89,9 @@ public class MetricAnalysis {
                 totalDuration += statistic.getDuration();
             }
             long avgDuration = totalDuration / list.size();
+            
             // throughput
-            double throughput;
-            if (list.get(0) != null && list.get(0).getJobName().contains("Xjoin")) {
-                if (list.size() <=8) {
-                    throughput = totalAmount * 1.0 / avgDuration * 1000;
-                } else {
-                    throughput = totalAmount * 1.0 / maxDuration * 1000;
-                }
-            } else {
-                if (list.size() <=4) {
-                    throughput = totalAmount * 1.0 / avgDuration * 1000;
-                } else {
-                    throughput = totalAmount * 1.0 / minDuration * 1000;
-                }
-            }
+            double throughput = totalAmount * 1.0 / avgDuration * 1000;
             // delay
             double delay = totalDuration * 1.0 / totalAmount;
 
