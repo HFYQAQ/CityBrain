@@ -36,13 +36,9 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
     Map<String, SigninterfridseqIndex> fridseqIndexM = new HashMap<>();
 
     // metric
-    private final String METRIC_SQL = "insert into statistic(job_name,subtask_index,dt,step_index_1mi,amount,duration,is_exhibition) values(?,?,?,?,?,?,?)";
+    private final String METRIC_SQL = "insert into statistic(job_name,subtask_index,dt,step_index_1mi,amount,duration,is_exhibition,phase) values(?,?,?,?,?,?,?,?)";
     private Connection metricConnection;
     private PreparedStatement metricPS;
-    //
-    private final String METRIC_SQL2 = "insert into statistic2(job_name,subtask_index,dt,step_index_1mi,amount,duration,is_exhibition,phase) values(?,?,?,?,?,?,?,?)";
-    private Connection metricConnection2;
-    private PreparedStatement metricPS2;
 
     public SingleIntersectionAnalysisFunction(boolean isExhibition) {
         this.isExhibition = isExhibition;
@@ -57,9 +53,6 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
         //metric
         metricConnection = DBConnection.getConnection();
         metricPS = metricConnection.prepareStatement(METRIC_SQL);
-        //
-        metricConnection2 = DBConnection.getConnection();
-        metricPS2 = metricConnection2.prepareStatement(METRIC_SQL2);
     }
 
     @Override
@@ -204,8 +197,7 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
         long duration = afterProcess - beforeProcess;
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
         String dt = sdf.format(new Date(timestamp));
-        upload(taskIdx, dt, stepIndex1mi, amount, duration, isExhibition);
-        upload2(taskIdx, dt, stepIndex1mi, amount, duration, isExhibition, String.format("%d_%d", phase1, phase2));
+        upload(taskIdx, dt, stepIndex1mi, amount, duration, isExhibition, String.format("%d_%d", phase1, phase2));
 
         for (fRidSeqTurnDirIndexDTO fRidSeqTurnDirIndexDTO : results) {
             RoadMetric roadMetric = new RoadMetric(
@@ -222,7 +214,7 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
         }
     }
 
-    private void upload(int taskIdx, String dt, Long stepIndex1mi, long amount, long duration, boolean isExhibition) throws Exception {
+    private void upload(int taskIdx, String dt, Long stepIndex1mi, long amount, long duration, boolean isExhibition, String phase) throws Exception {
         metricPS.clearParameters();
         ParameterTool parameterTool = (ParameterTool) getRuntimeContext().getExecutionConfig().getGlobalJobParameters();
         String jobName = parameterTool.get("jobName");
@@ -233,22 +225,8 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
         metricPS.setObject(5, amount);
         metricPS.setObject(6, duration);
         metricPS.setObject(7, isExhibition ? 1 : 0);
+        metricPS.setObject(8, phase);
         metricPS.executeUpdate();
-    }
-
-    private void upload2(int taskIdx, String dt, Long stepIndex1mi, long amount, long duration, boolean isExhibition, String phase) throws Exception {
-        metricPS2.clearParameters();
-        ParameterTool parameterTool = (ParameterTool) getRuntimeContext().getExecutionConfig().getGlobalJobParameters();
-        String jobName = parameterTool.get("jobName");
-        metricPS2.setObject(1, jobName);
-        metricPS2.setObject(2, taskIdx);
-        metricPS2.setObject(3, dt);
-        metricPS2.setObject(4, stepIndex1mi);
-        metricPS2.setObject(5, amount);
-        metricPS2.setObject(6, duration);
-        metricPS2.setObject(7, isExhibition ? 1 : 0);
-        metricPS2.setObject(8, phase);
-        metricPS2.executeUpdate();
     }
 
     private void loadBaseData() {
@@ -351,13 +329,6 @@ public class SingleIntersectionAnalysisFunction extends ProcessWindowFunction<Ro
         }
         if (metricConnection != null) {
             metricConnection.close();
-        }
-        //
-        if (metricPS2 != null) {
-            metricPS2.close();
-        }
-        if (metricConnection2 != null) {
-            metricConnection2.close();
         }
     }
 }

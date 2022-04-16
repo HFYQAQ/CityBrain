@@ -84,7 +84,7 @@ public class CityBrainEntry {
                 Long.parseLong(parameterTool.get("step-index-num"));
         // scale
         int scale = parameterTool.get("scale") == null ?
-                0 :
+                4 :
                 Integer.parseInt(parameterTool.get("scale"));
         String table1 = scale == 0 ? dws_tfc_state_rid_tpwkd_index_m : dws_tfc_state_rid_tpwkd_index_m + "_" + scale;
         String table2 = scale == 0 ? dws_tfc_state_signinterfridseq_tpwkd_delaydur_m : dws_tfc_state_signinterfridseq_tpwkd_delaydur_m + "_" + scale;
@@ -94,7 +94,7 @@ public class CityBrainEntry {
                 Long.parseLong(parameterTool.get("sourceDelay"));
         // interval
         long interval = parameterTool.get("interval") == null ?
-                10000 :
+                5000 :
                 Long.parseLong(parameterTool.get("interval"));
         // parallelism
         int parallelism = parameterTool.get("parallelism") == null ? 1 : Integer.parseInt(parameterTool.get("parallelism"));
