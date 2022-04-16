@@ -60,7 +60,7 @@ public class CityBrainEntry {
         }
         // source
         String source = parameterTool.get("source") == null ?
-                "kafka" :
+                "mysql" :
                 parameterTool.get("source");
         // input-topic
         String inputTopic = parameterTool.get("input-topic") == null ?
@@ -72,7 +72,7 @@ public class CityBrainEntry {
                 parameterTool.get("output-topic");
         // servers
         String servers = parameterTool.get("servers") == null ?
-                Constants.ASTERIA_KAFKA_SERVER :
+                "192.168.200.61:9092" :
                 parameterTool.get("servers");
         // source-table
         String sourceTableName = parameterTool.get("source-table") == null ?
