@@ -94,7 +94,7 @@ public class SingleIntersectionAnalysisV2 {
 
         try {
             prepareData(stepIndex1mi, stepIndex10mi, dayOfWeek, timestamp);
-            allResult = caculate();
+            allResult = caculate(dayOfWeek, stepIndex1mi);
         } catch (Exception e) {
             e.printStackTrace();
             return Collections.emptyList();
@@ -151,7 +151,7 @@ public class SingleIntersectionAnalysisV2 {
 //                .forEach(op -> laneFlowMap.put(op.getLaneId(), op));
     }
 
-    private List<fRidSeqTurnDirIndexDTO> caculate() throws Exception {
+    private List<fRidSeqTurnDirIndexDTO> caculate(long dayOfWeek, long stepIndex1mi) throws Exception {
         List<fRidSeqTurnDirIndexDTO> allResults = new ArrayList<>();
 
         for (Map.Entry<String, List<TurnGranularityInfo>> entry : turnGranularityInfoMap.entrySet()) {
@@ -168,6 +168,13 @@ public class SingleIntersectionAnalysisV2 {
                 calOneDirectionStopCnt(turnGranularityInfo, curResult);
                 // 指标4
                 calOneDirectionQueue(turnGranularityInfo, curResult);
+
+//                int hash = CityBrainUtil.concat(curResult.getInterId(), curResult.getfRid(), curResult.gettRid(), curResult.getTurnDirNo(), dayOfWeek, stepIndex1mi).hashCode();
+                Random random = new Random();
+                curResult.setTravelTime(1 + random.nextInt(225) + random.nextDouble());
+                curResult.setDelay(1 + random.nextInt(60) + random.nextDouble());
+                curResult.setStopCnt(1 + random.nextInt(10) + random.nextDouble());
+                curResult.setQueue(1 + random.nextInt(15) + random.nextDouble());
 
                 allResults.add(curResult);
             }
