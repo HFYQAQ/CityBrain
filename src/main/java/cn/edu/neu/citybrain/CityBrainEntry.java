@@ -6,7 +6,7 @@ import cn.edu.neu.citybrain.dto.my.RoadMetric;
 import cn.edu.neu.citybrain.function.DefaultValueForNdIndexFunction;
 import cn.edu.neu.citybrain.function.InterLaneScatterFunction;
 import cn.edu.neu.citybrain.function.SingleIntersectionAnalysisFunction;
-import cn.edu.neu.citybrain.function.sink.KafkaSinkFunction;
+import cn.edu.neu.citybrain.function.sink.SinkFunction;
 import cn.edu.neu.citybrain.function.source.SpeedRTSourceFunction;
 import cn.edu.neu.citybrain.util.ConstantUtil;
 import org.apache.flink.api.java.utils.ParameterTool;
@@ -330,7 +330,7 @@ public class CityBrainEntry {
                 .keyBy(0)
                 .window(TumblingEventTimeWindows.of(Time.minutes(1)))
                 .process(new SingleIntersectionAnalysisFunction(isExhibition));
-        singleIntersectionAnalysisResult.addSink(new KafkaSinkFunction(servers, outputTopic)).setParallelism(1);
+        singleIntersectionAnalysisResult.addSink(new SinkFunction(servers, outputTopic)).setParallelism(1);
 
         env.execute(ConstantUtil.JOB_NAME);
     }

@@ -10,12 +10,12 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 
 import java.util.Properties;
 
-public class KafkaSinkFunction extends RichSinkFunction<RoadMetric> {
+public class SinkFunction extends RichSinkFunction<RoadMetric> {
     private String servers;
     private String topic;
     private Producer<String, String> producer;
 
-    public KafkaSinkFunction(String servers, String topic) {
+    public SinkFunction(String servers, String topic) {
         this.servers = servers;
         this.topic = topic;
     }
