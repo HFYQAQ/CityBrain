@@ -11,6 +11,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Random;
 
+@Deprecated
 public class ExpandLastSpeedRT {
     private static final Random random = new Random();
 

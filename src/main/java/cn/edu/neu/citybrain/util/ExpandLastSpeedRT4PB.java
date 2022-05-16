@@ -14,6 +14,7 @@ import java.util.Random;
 /**
  * 为城市大脑贡献部分PB级数据
  */
+@Deprecated
 public class ExpandLastSpeedRT4PB {
     private static final Random random = new Random();
 
