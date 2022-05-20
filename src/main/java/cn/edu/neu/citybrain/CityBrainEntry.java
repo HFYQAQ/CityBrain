@@ -84,7 +84,7 @@ public class CityBrainEntry {
                 Long.parseLong(parameterTool.get("step-index-num"));
         // scale
         int scale = parameterTool.get("scale") == null ?
-                4 :
+                0 :
                 Integer.parseInt(parameterTool.get("scale"));
         String table1 = scale == 0 ? dws_tfc_state_rid_tpwkd_index_m : dws_tfc_state_rid_tpwkd_index_m + "_" + scale;
         String table2 = scale == 0 ? dws_tfc_state_signinterfridseq_tpwkd_delaydur_m : dws_tfc_state_signinterfridseq_tpwkd_delaydur_m + "_" + scale;
